@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,15 +19,15 @@ typedef uint cid;
 
 const char* Questions[] = {
 	"Are you transgender?",
-	"Are you gay/lesbian?",
+	"Are you gay/lesbian/bi/etc.?",
 	"Are you an adult?",
 	"Do you know C++ well?",
 	"Are you currently in a relationship?",
 	"Are you a part of the staff?"
 };
 
-typedef struct _trainingdata = {
-	const char *name;
+typedef struct _trainingdata {
+	char name [20];
 	ans q[QUESTIONS];
 } tdat;
 
@@ -43,7 +44,8 @@ typedef struct _trainingdata = {
 		{"sofia", {idk,idk,idk,idk,idk,t}},
 		{"kit", {t,t,f,t,f,f}},
 		{"olive", {t,t,idk,idk,idk,f}},
-		{"iso", {idk,idk,idk,idk,f,f}}
+		{"iso", {idk,idk,idk,idk,f,f}},
+		{"coral", {f,t,t,idk,idk,f}}
 	};
 #undef t
 #undef f
@@ -81,8 +83,8 @@ cid highestchance (void) {
 	cid h;
 	
 	for (cid c = 0; c != TrainingDatLen; c++)
-		if (chance(Characters[c]) > curch) {
-			curch = Characrers[c].chance;
+		if (chance(&Characters[c]) > curch) {
+			curch = Characters[c].chance;
 			h = c;
 		}
 	
@@ -93,7 +95,7 @@ void train (qid qu, ans an) {
 	cid hc = highestchance ();
 	
 	if (TrainingDat[hc].q[qu] == TD_UNKNOWN)
-		TrainingDat[hc].q[qu] == an;
+		TrainingDat[hc].q[qu] = an;
 	
 	/*for (cid c = 0; c != TrainingDatLen; c++) {
 		
@@ -108,14 +110,28 @@ void train (qid qu, ans an) {
 }
 
 uchar loadchars (const char* path) {
-	#define get ({ int c = fgetchar (f); if (c == EOF) goto load; else return (char)c; })
 	FILE* f = fopen (path, "r");
 	if (f == NULL) return 1;
-	for (;;) {
-		while (get != '"');
-		
+	for (cid ent = 0;; ent++) {
+
+		if (ent >= TrainingDatLen)
+			TrainingDat = (tdat*) reallocarray (&TrainingDat, TrainingDatLen *= 1.5, sizeof (tdat));
+
+		char answers [QUESTIONS + 1];
+		if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
+
+		for (qid i = 0; i != QUESTIONS; i++) {
+			switch (answers [i]) {
+				case 't': case 'T':
+					TrainingDat[ent].q[i] = TD_TRUE; break;
+				case 'f': case 'F':
+					TrainingDat[ent].q[i] = TD_FALSE; break;
+				default:
+					TrainingDat[ent].q[i] = TD_UNKNOWN; break;
+			}
+		}
+
 	}
-	load:
 }
 
 void main () {
