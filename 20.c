@@ -23,33 +23,36 @@ const char* Questions[] = {
 	"Are you an adult?",
 	"Do you know C++ well?",
 	"Are you currently in a relationship?",
-	"Are you a part of the staff?"
+	"Are you a part of the staff?",
+	"Are you currently in school?",
+	"Do you have your own Discord server? (doesn't include \"test servers\")",
+	"Do you have a GitHub account?",
+	"Do you live in the U.S.A.?",
+	"Do you routinely exercize?",
+	"Have you ever had a pet?",
+	"Do you regularly use Rust?",
+	"Do you often try to program in esoteric programming languages?",
+	"Are you a part of the GEORGE webring?",
+	"Do you have more than 10 GitHub repositories?",
+	"Tabs (Y) or spaces (N)?",
+	"Is programming your primary hobby?",
+	"Do people call you by your nickname/real name more often than your username/online name?",
+	"`func(...);` (Y) or `func (...);` (N)?",
+	"Do you actively participate in the Esolangs community? (ie. develop and utilize esolangs)",
+	"Do you enjoy linguistics? (eg. conlangs)",
+	"Do you use Windows primarily?",
+	"Would you consider yourself a \"computer whiz\"?",
+	//"`while(...)\n{` (Y) or `while(...) {` (N)?",
+	"Are you content with your current living situation?",
+	"Do you primarily use Python? (ie. use it more often than other languages)",
+	"Are you a \"long-standing\" member of Esolangs?",
+	"Do you have a (meaningful) website?"
 };
 
 typedef struct _trainingdata {
 	char name [20];
 	ans q[QUESTIONS];
 } tdat;
-
-#define t TD_TRUE
-#define f TD_FALSE
-#define idk TD_UNKNOWN
-	tdat InitialTrainingData[] = {
-		{"lyricly", {t,t,f,f,t}},
-		{"olivia", {idk,t,t,idk,idk,t}},
-		{"palaiologos", {t,t,idk,t,f,t}},
-		{"gollark", {f,idk,idk,idk,idk,f}},
-		{"kaylynn", {idk,t,idk,idk,idk,f}},
-		{"sinthorion", {f,t,t,idk,f,f}},
-		{"sofia", {idk,idk,idk,idk,idk,t}},
-		{"kit", {t,t,f,t,f,f}},
-		{"olive", {t,t,idk,idk,idk,f}},
-		{"iso", {idk,idk,idk,idk,f,f}},
-		{"coral", {f,t,t,idk,idk,f}}
-	};
-#undef t
-#undef f
-#undef idk
 
 typedef struct _character {
 	tdat info;
@@ -110,30 +113,79 @@ void train (qid qu, ans an) {
 }
 
 uchar loadchars (const char* path) {
-	FILE* f = fopen (path, "r");
+	
+	{
+		FILE* f = fopen (path, "r");
+		if (f == NULL) return 1;
+		cid ent;
+		
+		for (ent = 0;; ent++) {
+
+			if (ent >= TrainingDatLen)
+				TrainingDat = (tdat*) reallocarray (&TrainingDat, (TrainingDatLen *= 1.5) + 1, sizeof (tdat));
+
+			char answers [QUESTIONS + 2];
+			if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
+
+			for (qid i = 0; i != QUESTIONS; i++) {
+				switch (answers [i]) {
+					case 't': case 'T':
+						TrainingDat[ent].q[i] = TD_TRUE; break;
+					case 'f': case 'F':
+						TrainingDat[ent].q[i] = TD_FALSE; break;
+					default:
+						TrainingDat[ent].q[i] = TD_UNKNOWN; break;
+				}
+			}
+
+		}
+		TrainingDatLen = ent;
+		
+		fclose (f);
+	}
+	
+	
+	TrainingDat = (tdat*) reallocarray (&TrainingDat, TrainingDatLen + 1, sizeof (tdat));
+	Characters = (character*) allocarray (TrainingDatLen + 2, sizeof (character));
+	
+	for (cid ent = 0; ent != TrainingDatLen; ent++)
+		Characters[ent].info = TrainingDat[ent];
+		
+	return 0;
+}
+
+uchar savechars (const char* path) {
+	FILE* f = fopen (path, "w");
 	if (f == NULL) return 1;
-	for (cid ent = 0;; ent++) {
-
-		if (ent >= TrainingDatLen)
-			TrainingDat = (tdat*) reallocarray (&TrainingDat, TrainingDatLen *= 1.5, sizeof (tdat));
-
-		char answers [QUESTIONS + 1];
-		if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
-
-		for (qid i = 0; i != QUESTIONS; i++) {
-			switch (answers [i]) {
-				case 't': case 'T':
-					TrainingDat[ent].q[i] = TD_TRUE; break;
-				case 'f': case 'F':
-					TrainingDat[ent].q[i] = TD_FALSE; break;
-				default:
-					TrainingDat[ent].q[i] = TD_UNKNOWN; break;
+	
+	for (cid ent = 0; ent != TrainingDatLen+1; ent++) {
+		char answers [QUESTIONS + 2];
+		
+		for (qid qu = 0; qu != QUESTIONS; qu++) {
+			switch (Characters[ent].info.q[qu]) {
+				case TD_FALSE: answers[qu] = 'F'; break;
+				case TD_TRUE: answers[qu] = 'T'; break;
+				case TD_UNKNOWN: answers[qu] = '?'; break;
 			}
 		}
-
+		answers [QUESTIONS + 1] = '\0';
+		
+		fprintf (f, "%s,%s\n", Characters[ent].info.name, answers);
 	}
+	
+	fclose (f);
+}
+
+void init (void) {
+	free (&TrainingDat); free (&Characters);
+	TrainingDat = (tdat*) allocarray ((TrainingDatLen = 100) + 1, sizeof (tdat));
 }
 
 void main () {
-	
+	if (loadchars ("training.csv")) {
+		puts ("ERROR: Cannot find `training.csv`!\n");
+		puts ("Please create it and put the data table in it\n");
+		puts ("See the source code for information on how to create it.\n");
+		exit (1);
+	}
 }
