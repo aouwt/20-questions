@@ -1,8 +1,8 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline.h>
-#include <history.h>
+//#include <readline.h>
+//#include <history.h>
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS LEN(Questions)
@@ -204,8 +204,8 @@ void main () {
 		char reply;
 		
 		fflush (stdin);
-		do printf ("%s (Y/N)\t", Question[qu]);
-		while (scanf ("%[YNynTFtf?]c", reply));
+		do printf ("%s (Y/N)\t", Questions[qu]);
+		while (scanf ("%[YNynTFtf?]c", &reply));
 		
 		switch (reply) {
 			case 'Y': case 'y': case 'T': case 't':
