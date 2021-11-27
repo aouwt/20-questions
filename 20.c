@@ -50,7 +50,7 @@ typedef struct _trainingdata = {
 #undef idk
 
 typedef struct _character {
-	tdat *info;
+	tdat info;
 	float chance;
 } character;
 
@@ -61,19 +61,19 @@ ans CurAns [QUESTIONS];
 cid TrainingDatLen = 0;
 
 float chance (character *C) {
-	float chance = 0;
-	cid e = 0;
+	qid e = 0;
 	
 	for (qid i = 0; i != QUESTIONS; i++) {
-		if ((C -> info -> q [i] == TD_UNKNOWN) || (CurAns [i] == TD_UNKNOWN))
-			e--;
-		else
-			chance += (C -> info -> q [i] == CurAns [i]);
-		e++;
+		if ((CurAns [i] == TD_UNKNOWN) || (C -> info.q [i] == TD_UNKNOWN)) continue;
+		if (CurAns [i] == C -> info.q [i])
+			e++;
+		else {
+			e = 0;
+			break;
+		}
 	}
 
-	if (e < (QUESTIONS / 2)) e = QUESTIONS / 2;
-	return (chance /= e);
+	return (C -> chance = (e / QUESTIONS));
 }
 
 cid highestchance (void) {
@@ -105,6 +105,17 @@ void train (qid qu, ans an) {
 		}
 	
 	}*/
+}
+
+uchar loadchars (const char* path) {
+	#define get ({ int c = fgetchar (f); if (c == EOF) goto load; else return (char)c; })
+	FILE* f = fopen (path, "r");
+	if (f == NULL) return 1;
+	for (;;) {
+		while (get != '"');
+		
+	}
+	load:
 }
 
 void main () {
