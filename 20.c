@@ -1,6 +1,8 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <readline.h>
+#include <history.h>
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS LEN(Questions)
@@ -122,16 +124,16 @@ uchar loadchars (const char* path) {
 		for (ent = 0;; ent++) {
 
 			if (ent >= TrainingDatLen)
-				TrainingDat = (tdat*) reallocarray (&TrainingDat, (TrainingDatLen *= 1.5) + 1, sizeof (tdat));
+				TrainingDat = (tdat*) realloc (&TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
 
 			char answers [QUESTIONS + 2];
 			if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
 
 			for (qid i = 0; i != QUESTIONS; i++) {
 				switch (answers [i]) {
-					case 't': case 'T':
+					case 'T':
 						TrainingDat[ent].q[i] = TD_TRUE; break;
-					case 'f': case 'F':
+					case 'F':
 						TrainingDat[ent].q[i] = TD_FALSE; break;
 					default:
 						TrainingDat[ent].q[i] = TD_UNKNOWN; break;
@@ -145,8 +147,8 @@ uchar loadchars (const char* path) {
 	}
 	
 	
-	TrainingDat = (tdat*) reallocarray (&TrainingDat, TrainingDatLen + 1, sizeof (tdat));
-	Characters = (character*) allocarray (TrainingDatLen + 2, sizeof (character));
+	TrainingDat = (tdat*) realloc (&TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
+	Characters = (character*) malloc ((TrainingDatLen + 2) * sizeof (character));
 	
 	for (cid ent = 0; ent != TrainingDatLen; ent++)
 		Characters[ent].info = TrainingDat[ent];
@@ -176,16 +178,44 @@ uchar savechars (const char* path) {
 	fclose (f);
 }
 
+qid getquestion (void) {
+	// TODO: better alg
+	
+	return rand() % (QUESTIONS+1);
+}
+
 void init (void) {
-	free (&TrainingDat); free (&Characters);
-	TrainingDat = (tdat*) allocarray ((TrainingDatLen = 100) + 1, sizeof (tdat));
+	free (TrainingDat); free (Characters);
+	TrainingDat = (tdat*) malloc (((TrainingDatLen = 100) + 1) * sizeof (tdat));
 }
 
 void main () {
+	init ();
 	if (loadchars ("training.csv")) {
 		puts ("ERROR: Cannot find `training.csv`!\n");
 		puts ("Please create it and put the data table in it\n");
 		puts ("See the source code for information on how to create it.\n");
 		exit (1);
+	}
+	
+	for (uchar i = 0; i != 20; i++) {
+		qid qu = getquestion ();
+		ans an;
+		char reply;
+		
+		fflush (stdin);
+		do printf ("%s (Y/N)\t", Question[qu]);
+		while (scanf ("%[YNynTFtf?]c", reply));
+		
+		switch (reply) {
+			case 'Y': case 'y': case 'T': case 't':
+				an = TD_TRUE; break;
+			case 'N': case 'n': case 'F': case 'f':
+				an = TD_FALSE; break;
+			case '?':
+				an = TD_UNKNOWN; break;
+		}
+		
+		train (qu, an);
 	}
 }
