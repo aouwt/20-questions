@@ -36,7 +36,14 @@ typedef struct _trainingdata = {
 	tdat InitialTrainingData[] = {
 		{"lyricly", {t,t,f,f,t}},
 		{"olivia", {idk,t,t,idk,idk,t}},
-		{"palaiologos", {t,t,idk,t,f,t}}
+		{"palaiologos", {t,t,idk,t,f,t}},
+		{"gollark", {f,idk,idk,idk,idk,f}},
+		{"kaylynn", {idk,t,idk,idk,idk,f}},
+		{"sinthorion", {f,t,t,idk,f,f}},
+		{"sofia", {idk,idk,idk,idk,idk,t}},
+		{"kit", {t,t,f,t,f,f}},
+		{"olive", {t,t,idk,idk,idk,f}},
+		{"iso", {idk,idk,idk,idk,f,f}}
 	};
 #undef t
 #undef f
@@ -64,7 +71,8 @@ float chance (character *C) {
 			chance += (C -> info -> q [i] == CurAns [i]);
 		e++;
 	}
-	
+
+	if (e < (QUESTIONS / 2)) e = QUESTIONS / 2;
 	return (chance /= e);
 }
 
