@@ -96,7 +96,7 @@ ans parseans (char a) {
 
 cid highestchance (void) {
 	float curch = 0;
-	cid h;
+	cid h = 0;
 	
 	for (cid c = 0; c != TrainingDatLen; c++) {
 		if (chance(&Characters[c]) > curch) {
@@ -141,7 +141,7 @@ uchar loadchars (const char* path) {
 				TrainingDat = (tdat*) realloc (TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
 
 			char answers [QUESTIONS + 2];
-			if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
+			if (fscanf (f, "%[^,]s,%[^,]s", TrainingDat[ent].name, answers)) break;
 
 			for (qid i = 0; i != QUESTIONS; i++)
 				TrainingDat[ent].q[i] = parseans (answers [i]);
@@ -156,8 +156,17 @@ uchar loadchars (const char* path) {
 	TrainingDat = (tdat*) realloc (TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
 	Characters = (character*) malloc ((TrainingDatLen + 2) * sizeof (character));
 	
-	for (cid ent = 0; ent != TrainingDatLen; ent++)
-		Characters[ent].info = TrainingDat[ent];
+	// copy it to Characters
+	for (cid ent = 0; ent != TrainingDatLen; ent++) {
+	
+		for (uchar i = 0; i != LEN(TrainingDat[0].name); i++)
+			Characters[ent].info.name[i] = TrainingDat[ent].name[i];
+			
+		for (qid i = 0; i != LEN(TrainingDat[0].q); i++)
+			Characters[ent].info.q[i] = TrainingDat[ent].q[i];
+			
+		Characters[ent].chance = 0;
+	}
 		
 	return 0;
 }
@@ -203,7 +212,6 @@ void main () {
 	for (uchar i = 0; i != 19; i++) {
 		qid qu = getquestion ();
 		ans an;
-		char reply;
 		
 		
 		//do { printf ("%s (Y/N)\t", Questions[qu]);
