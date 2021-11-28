@@ -5,7 +5,7 @@
 //#include <history.h>
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
-#define QUESTIONS LEN(Questions)
+#define QUESTIONS (LEN(Questions) - 1)
 
 #define TD_TRUE 1
 #define TD_FALSE 2
@@ -53,7 +53,7 @@ const char* Questions[] = {
 
 typedef struct _trainingdata {
 	char name [20];
-	ans q[QUESTIONS];
+	ans q[QUESTIONS+1];
 } tdat;
 
 typedef struct _character {
@@ -64,7 +64,7 @@ typedef struct _character {
 
 character *Characters;
 tdat *TrainingDat;
-ans CurAns [QUESTIONS];
+ans CurAns [QUESTIONS+1];
 cid TrainingDatLen = 0;
 
 float chance (character *C) {
@@ -83,15 +83,27 @@ float chance (character *C) {
 	return (C -> chance = (e / QUESTIONS));
 }
 
+ans parseans (char a) {
+	switch (a) {
+		case 'Y': case 'y': case 'T': case 't':
+			return TD_TRUE;
+		case 'N': case 'n': case 'F': case 'f':
+			return TD_FALSE;
+		default:
+			return TD_UNKNOWN;
+	}
+}
+
 cid highestchance (void) {
 	float curch = 0;
 	cid h;
 	
-	for (cid c = 0; c != TrainingDatLen; c++)
+	for (cid c = 0; c != TrainingDatLen; c++) {
 		if (chance(&Characters[c]) > curch) {
 			curch = Characters[c].chance;
 			h = c;
 		}
+	}
 	
 	return h;
 }
@@ -101,6 +113,8 @@ void train (qid qu, ans an) {
 	
 	if (TrainingDat[hc].q[qu] == TD_UNKNOWN)
 		TrainingDat[hc].q[qu] = an;
+	
+	CurAns [qu] = an;
 	
 	/*for (cid c = 0; c != TrainingDatLen; c++) {
 		
@@ -124,21 +138,13 @@ uchar loadchars (const char* path) {
 		for (ent = 0;; ent++) {
 
 			if (ent >= TrainingDatLen)
-				TrainingDat = (tdat*) realloc (&TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
+				TrainingDat = (tdat*) realloc (TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
 
 			char answers [QUESTIONS + 2];
 			if (fscanf (f, "%[^,]s,%[^,]s", &TrainingDat[ent].name, &answers)) break;
 
-			for (qid i = 0; i != QUESTIONS; i++) {
-				switch (answers [i]) {
-					case 'T':
-						TrainingDat[ent].q[i] = TD_TRUE; break;
-					case 'F':
-						TrainingDat[ent].q[i] = TD_FALSE; break;
-					default:
-						TrainingDat[ent].q[i] = TD_UNKNOWN; break;
-				}
-			}
+			for (qid i = 0; i != QUESTIONS; i++)
+				TrainingDat[ent].q[i] = parseans (answers [i]);
 
 		}
 		TrainingDatLen = ent;
@@ -147,7 +153,7 @@ uchar loadchars (const char* path) {
 	}
 	
 	
-	TrainingDat = (tdat*) realloc (&TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
+	TrainingDat = (tdat*) realloc (TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
 	Characters = (character*) malloc ((TrainingDatLen + 2) * sizeof (character));
 	
 	for (cid ent = 0; ent != TrainingDatLen; ent++)
@@ -163,19 +169,15 @@ uchar savechars (const char* path) {
 	for (cid ent = 0; ent != TrainingDatLen+1; ent++) {
 		char answers [QUESTIONS + 2];
 		
-		for (qid qu = 0; qu != QUESTIONS; qu++) {
-			switch (Characters[ent].info.q[qu]) {
-				case TD_FALSE: answers[qu] = 'F'; break;
-				case TD_TRUE: answers[qu] = 'T'; break;
-				case TD_UNKNOWN: answers[qu] = '?'; break;
-			}
-		}
+		for (qid qu = 0; qu != QUESTIONS; qu++)
+			answers[qu] = parseans (Characters[ent].info.q[qu]);
 		answers [QUESTIONS + 1] = '\0';
 		
 		fprintf (f, "%s,%s\n", Characters[ent].info.name, answers);
 	}
 	
 	fclose (f);
+	return 0;
 }
 
 qid getquestion (void) {
@@ -198,24 +200,28 @@ void main () {
 		exit (1);
 	}
 	
-	for (uchar i = 0; i != 20; i++) {
+	for (uchar i = 0; i != 19; i++) {
 		qid qu = getquestion ();
 		ans an;
 		char reply;
 		
-		fflush (stdin);
-		do printf ("%s (Y/N)\t", Questions[qu]);
-		while (scanf ("%[YNynTFtf?]c", &reply));
 		
-		switch (reply) {
-			case 'Y': case 'y': case 'T': case 't':
-				an = TD_TRUE; break;
-			case 'N': case 'n': case 'F': case 'f':
-				an = TD_FALSE; break;
-			case '?':
-				an = TD_UNKNOWN; break;
-		}
+		//do { printf ("%s (Y/N)\t", Questions[qu]);
+		//} while (scanf ("%[YNynTFtf?]c", &reply));
+		printf ("%s (Y/N)\t", Questions[qu]);
+		an = parseans (getchar ());
+		while (getchar () != '\n');
 		
 		train (qu, an);
 	}
+	
+	printf ("Are you %s? ", Characters[highestchance ()].info.name);
+	
+	if (parseans (getchar ()) == TD_TRUE) {
+		puts ("Yay!\n");
+	} else {
+		puts ("Aww...\n");
+	}
+	
+	savechars ("training.csv");
 }
