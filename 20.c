@@ -250,10 +250,18 @@ void main () {
 	} else {
 	
 		char name [NAMELEN+2];
+		char fmt [20]; snprintf (fmt, LEN(fmt), "%%%u[^\n]", (uint)(NAMELEN+1));
+
 		do printf ("Aww...\nWho are you, then? ");
-		while (scanf ("%[a-z ]"STR(NAMELEN+1)"\n", name));
-		puts (name);
-		
+		while (scanf (fmt, name) == EOF);
+
+		puts ("Entering into database...");
+
+		for (uchar i = 0; i != NAMELEN+1; i++)
+			Characters[TrainingDatLen].info.name[i] = name[i];
+			
+		for (qid i = 0; i != QUESTIONS; i++)
+			Characters[TrainingDatLen].info.q[i] = CurAns [i];
 	}
 	
 	savechars ("training.csv");
