@@ -3,12 +3,13 @@
 #include <stdlib.h>
 //#include <readline.h>
 //#include <history.h>
+#pragma GCC optimize ("-Os") // this is BS.
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
 
-#define TD_TRUE 1
-#define TD_FALSE 2
+#define TD_TRUE 2
+#define TD_FALSE 1
 #define TD_UNKNOWN 0
 
 #define IDK_CHANCE /* 1 / */ 100
@@ -52,7 +53,7 @@ const char* Questions[] = {
 };
 
 typedef struct _trainingdata {
-	char name [20];
+	char name [21];
 	ans q[QUESTIONS+1];
 } tdat;
 
@@ -131,17 +132,18 @@ void train (qid qu, ans an) {
 uchar loadchars (const char* path) {
 	
 	{
+		char answers [QUESTIONS + 2];
 		FILE* f = fopen (path, "r");
 		if (f == NULL) return 1;
 		cid ent;
 		
 		for (ent = 0;; ent++) {
 
+			if (fscanf (f, "%[^,],%[^\n]\n", TrainingDat[ent].name, answers) == EOF) break;
+			if (answers[QUESTIONS+1] != '\0') exit (1);
+			
 			if (ent >= TrainingDatLen)
 				TrainingDat = (tdat*) realloc (TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
-
-			char answers [QUESTIONS + 2];
-			if (fscanf (f, "%[^,]s,%[^,]s", TrainingDat[ent].name, answers)) break;
 
 			for (qid i = 0; i != QUESTIONS; i++)
 				TrainingDat[ent].q[i] = parseans (answers [i]);
@@ -159,12 +161,12 @@ uchar loadchars (const char* path) {
 	// copy it to Characters
 	for (cid ent = 0; ent != TrainingDatLen; ent++) {
 	
-		for (uchar i = 0; i != LEN(TrainingDat[0].name); i++)
+		for (uchar i = 0; i != LEN(TrainingDat[0].name)-1; i++)
 			Characters[ent].info.name[i] = TrainingDat[ent].name[i];
 			
-		for (qid i = 0; i != LEN(TrainingDat[0].q); i++)
+		for (qid i = 0; i != LEN(TrainingDat[0].q)-1; i++)
 			Characters[ent].info.q[i] = TrainingDat[ent].q[i];
-			
+		
 		Characters[ent].chance = 0;
 	}
 		
@@ -175,11 +177,16 @@ uchar savechars (const char* path) {
 	FILE* f = fopen (path, "w");
 	if (f == NULL) return 1;
 	
-	for (cid ent = 0; ent != TrainingDatLen+1; ent++) {
+	for (cid ent = 0; ent != TrainingDatLen; ent++) {
 		char answers [QUESTIONS + 2];
 		
-		for (qid qu = 0; qu != QUESTIONS; qu++)
-			answers[qu] = parseans (Characters[ent].info.q[qu]);
+		for (qid qu = 0; qu != QUESTIONS; qu++) {
+			switch (Characters[ent].info.q[qu]) {
+				case TD_TRUE: answers[qu] = 'T'; break;
+				case TD_FALSE: answers[qu] = 'F'; break;
+				case TD_UNKNOWN: answers[qu] = '?'; break;
+			}
+		}
 		answers [QUESTIONS + 1] = '\0';
 		
 		fprintf (f, "%s,%s\n", Characters[ent].info.name, answers);
@@ -191,13 +198,17 @@ uchar savechars (const char* path) {
 
 qid getquestion (void) {
 	// TODO: better alg
-	
-	return rand() % (QUESTIONS+1);
+	qid q;
+	while (CurAns[(q = rand() % (QUESTIONS+1))] != TD_UNKNOWN);
+	return q;
 }
 
 void init (void) {
 	free (TrainingDat); free (Characters);
 	TrainingDat = (tdat*) malloc (((TrainingDatLen = 100) + 1) * sizeof (tdat));
+	
+	for (qid i = 0; i != QUESTIONS; i++)
+		CurAns [i] = TD_UNKNOWN;
 }
 
 void main () {
@@ -211,13 +222,9 @@ void main () {
 	
 	for (uchar i = 0; i != 19; i++) {
 		qid qu = getquestion ();
-		ans an;
-		
-		
-		//do { printf ("%s (Y/N)\t", Questions[qu]);
-		//} while (scanf ("%[YNynTFtf?]c", &reply));
 		printf ("%s (Y/N)\t", Questions[qu]);
-		an = parseans (getchar ());
+		
+		ans an = parseans (getchar ());
 		while (getchar () != '\n');
 		
 		train (qu, an);
