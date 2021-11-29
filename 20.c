@@ -6,9 +6,6 @@
 //#include <math.h>
 //#pragma GCC optimize ("-Os")
 
-#define _STR(x) #x
-#define STR(x) _STR(x)
-
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
 #define NAMELEN 20
@@ -56,7 +53,8 @@ const char* Questions[] = {
 	"Are you content with your current living situation?",
 	"Do you primarily use Python? (ie. use it more often than other languages)",
 	"Are you a \"long-standing\" member of Esolangs?",
-	"Do you have a (meaningful) website?"
+	"Do you have a (meaningful) website?",
+	""
 };
 
 typedef struct {
@@ -73,6 +71,7 @@ typedef struct {
 character *Characters; cid CharactersLen = 0;
 tdat *TrainingDat; cid TrainingDatLen = 0;
 ans CurAns [QUESTIONS+1];
+cid Target = 0;
 
 float chance (character *C) {
 	qid e = 0;
@@ -115,10 +114,10 @@ cid highestchance (void) {
 }
 
 void train (qid qu, ans an) {
-	cid hc = highestchance ();
+	Target = highestchance ();
 	
-	if (Characters[hc].info.q[qu] == TD_UNKNOWN)
-		Characters[hc].info.q[qu] = an;
+	if (Characters[Target].info.q[qu] == TD_UNKNOWN)
+		Characters[Target].info.q[qu] = an;
 	
 	CurAns [qu] = an;
 	
@@ -159,22 +158,22 @@ uchar loadchars (const char* path) {
 
 		}
 		done:
-		TrainingDatLen = ent;
+		TrainingDatLen = CharactersLen = ent;
 		
 		fclose (f);
 	}
 	
 	
 	TrainingDat = (tdat*) realloc (TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
-	Characters = (character*) malloc (((CharactersLen = TrainingDatLen+1) + 1) * sizeof (character));
+	Characters = (character*) malloc ((CharactersLen + 2) * sizeof (character));
 	
 	// copy it to Characters
 	for (cid ent = 0; ent != TrainingDatLen; ent++) {
 	
-		for (uchar i = 0; i != LEN(TrainingDat[0].name)-1; i++)
+		for (uchar i = 0; i != NAMELEN; i++)
 			Characters[ent].info.name[i] = TrainingDat[ent].name[i];
 			
-		for (qid i = 0; i != LEN(TrainingDat[0].q)-1; i++)
+		for (qid i = 0; i != QUESTIONS; i++)
 			Characters[ent].info.q[i] = TrainingDat[ent].q[i];
 		
 		Characters[ent].chance = 0;
@@ -189,13 +188,14 @@ uchar savechars (const char* path) {
 	for (cid ent = 0; ent != CharactersLen; ent++) {
 		char answers [QUESTIONS + 2];
 		
-		for (qid qu = 0; qu != QUESTIONS; qu++) {
+		for (qid qu = 0; qu != QUESTIONS+1; qu++) {
 			switch (Characters[ent].info.q[qu]) {
 				case TD_TRUE: answers[qu] = 'T'; break;
 				case TD_FALSE: answers[qu] = 'F'; break;
 				case TD_UNKNOWN: answers[qu] = '?'; break;
 			}
 		}
+		
 		answers [QUESTIONS + 1] = '\0';
 		
 		fprintf (f, "%s,%s\n", Characters[ent].info.name, answers);
@@ -208,7 +208,17 @@ uchar savechars (const char* path) {
 qid getquestion (void) {
 	// TODO: better alg
 	qid q;
-	while (CurAns[(q = rand() % (QUESTIONS+1))] != TD_UNKNOWN);
+	
+	if ((rand () % IDK_CHANCE) == 0) {
+		do
+			q = rand() % QUESTIONS;
+		while (
+			(CurAns [q] != TD_UNKNOWN) ||
+			(Characters[Target].info.q [q] != 
+		);
+	}
+	
+	while (CurAns[(q = rand() % (QUESTIONS))] != TD_UNKNOWN);
 	return q;
 }
 
@@ -228,7 +238,7 @@ void main () {
 begin:
 	puts ("Initializing...");
 	init ();
-	if (loadchars ("training.csv")) {
+	if (loadchars (".td")) {
 		printf ("Warning: Training data not found, should I create it? (Y/N)\t");
 		if (parseans (getchar ()) == TD_TRUE) {
 			init_td ();
@@ -249,10 +259,11 @@ begin:
 		train (qu, an);
 	}
 	
-	printf ("Are you %s? ", Characters[highestchance ()].info.name);
+	printf ("Are you %s? ", Characters[Target].info.name);
 	
 	if (parseans (getchar ()) == TD_TRUE) {
 		puts ("Yay!");
+		
 	} else {
 	
 		char name [NAMELEN+2];
@@ -262,6 +273,8 @@ begin:
 		while (scanf (fmt, name) == EOF);
 
 		puts ("Entering into database...");
+		
+		CharactersLen ++;
 
 		for (uchar i = 0; i != NAMELEN+1; i++)
 			Characters[TrainingDatLen].info.name[i] = name[i];
@@ -270,5 +283,5 @@ begin:
 			Characters[TrainingDatLen].info.q[i] = CurAns [i];
 	}
 	
-	savechars ("training.csv");
+	savechars (".td");
 }
