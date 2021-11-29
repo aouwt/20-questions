@@ -3,10 +3,15 @@
 #include <stdlib.h>
 //#include <readline.h>
 //#include <history.h>
-#pragma GCC optimize ("-Os") // this is BS.
+//#include <math.h>
+//#pragma GCC optimize ("-Os")
+
+#define _STR(x) #x
+#define STR(x) _STR (x)
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
+#define NAMELEN 20
 
 #define TD_TRUE 2
 #define TD_FALSE 1
@@ -52,12 +57,12 @@ const char* Questions[] = {
 	"Do you have a (meaningful) website?"
 };
 
-typedef struct _trainingdata {
-	char name [21];
+typedef struct {
+	char name [NAMELEN+2];
 	ans q[QUESTIONS+1];
 } tdat;
 
-typedef struct _character {
+typedef struct {
 	tdat info;
 	float chance;
 } character;
@@ -76,8 +81,7 @@ float chance (character *C) {
 		if (CurAns [i] == C -> info.q [i])
 			e++;
 		else {
-			e = 0;
-			break;
+			e = (e - (QUESTIONS/2) < 0) ? 0 : e - (QUESTIONS/2);
 		}
 	}
 
@@ -139,8 +143,7 @@ uchar loadchars (const char* path) {
 		
 		for (ent = 0;; ent++) {
 
-			if (fscanf (f, "%[^,],%[^\n]\n", TrainingDat[ent].name, answers) == EOF) break;
-			if (answers[QUESTIONS+1] != '\0') exit (1);
+			if (fscanf (f, "%[^,]"STR(NAMELEN+1)",%s"STR(QUESTIONS+1)"\n", TrainingDat[ent].name, answers) == EOF) break;
 			
 			if (ent >= TrainingDatLen)
 				TrainingDat = (tdat*) realloc (TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
@@ -235,7 +238,12 @@ void main () {
 	if (parseans (getchar ()) == TD_TRUE) {
 		puts ("Yay!\n");
 	} else {
-		puts ("Aww...\n");
+	
+		char name [NAMELEN+2];
+		do puts ("Aww...\nWho are you, then? ");
+		while (scanf ("%[a-z ]"STR(NAMELEN+1)"\n", name)) puts ("h");
+		puts (name);
+		
 	}
 	
 	savechars ("training.csv");
