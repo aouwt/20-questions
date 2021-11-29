@@ -70,10 +70,9 @@ typedef struct {
 } character;
 
 
-character *Characters;
-tdat *TrainingDat;
+character *Characters; cid CharactersLen = 0;
+tdat *TrainingDat; cid TrainingDatLen = 0;
 ans CurAns [QUESTIONS+1];
-cid TrainingDatLen = 0;
 
 float chance (character *C) {
 	qid e = 0;
@@ -167,7 +166,7 @@ uchar loadchars (const char* path) {
 	
 	
 	TrainingDat = (tdat*) realloc (TrainingDat, (TrainingDatLen + 1) * sizeof (tdat));
-	Characters = (character*) malloc ((TrainingDatLen + 2) * sizeof (character));
+	Characters = (character*) malloc (((CharactersLen = TrainingDatLen+1) + 1) * sizeof (character));
 	
 	// copy it to Characters
 	for (cid ent = 0; ent != TrainingDatLen; ent++) {
@@ -180,7 +179,6 @@ uchar loadchars (const char* path) {
 		
 		Characters[ent].chance = 0;
 	}
-		
 	return 0;
 }
 
@@ -188,7 +186,7 @@ uchar savechars (const char* path) {
 	FILE* f = fopen (path, "w");
 	if (f == NULL) return 1;
 	
-	for (cid ent = 0; ent != TrainingDatLen; ent++) {
+	for (cid ent = 0; ent != CharactersLen; ent++) {
 		char answers [QUESTIONS + 2];
 		
 		for (qid qu = 0; qu != QUESTIONS; qu++) {
