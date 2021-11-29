@@ -7,7 +7,7 @@
 //#pragma GCC optimize ("-Os")
 
 #define _STR(x) #x
-#define STR(x) _STR (x)
+#define STR(x) _STR(x)
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
@@ -145,6 +145,9 @@ uchar loadchars (const char* path) {
 		
 		for (ent = 0;; ent++) {
 
+			{ // build format string
+				char fmt [20];
+				snprintf ("%%s[^,]%i,%%s%i\n", 
 			if (fscanf (f, "%[^,]"STR(NAMELEN+1)",%s"STR(QUESTIONS+1)"\n", TrainingDat[ent].name, answers) == EOF) break;
 			
 			if (ent >= TrainingDatLen)
