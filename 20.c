@@ -147,9 +147,11 @@ uchar loadchars (const char* path) {
 
 			{ // build format string
 				char fmt [20];
-				snprintf ("%%s[^,]%i,%%s%i\n", 
-			if (fscanf (f, "%[^,]"STR(NAMELEN+1)",%s"STR(QUESTIONS+1)"\n", TrainingDat[ent].name, answers) == EOF) break;
-			
+				snprintf (fmt, LEN(fmt), "%%%u[^,],%%%u[^\n]\n", (uint)(NAMELEN+1), (uint)QUESTIONS+1);
+
+				if (fscanf (f, fmt, TrainingDat[ent].name, answers) == EOF) goto done;
+			}
+
 			if (ent >= TrainingDatLen)
 				TrainingDat = (tdat*) realloc (TrainingDat, ((TrainingDatLen *= 1.5) + 1) * sizeof (tdat));
 
@@ -157,6 +159,7 @@ uchar loadchars (const char* path) {
 				TrainingDat[ent].q[i] = parseans (answers [i]);
 
 		}
+		done:
 		TrainingDatLen = ent;
 		
 		fclose (f);
