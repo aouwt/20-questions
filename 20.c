@@ -16,7 +16,7 @@
 #define TD_FALSE 1
 #define TD_UNKNOWN 0
 
-#define IDK_CHANCE /* 1 / */ 100
+#define IDK_CHANCE /* 1 / */ 2
 
 typedef unsigned char uchar;
 typedef unsigned int uint;
@@ -209,17 +209,12 @@ qid getquestion (void) {
 	// TODO: better alg
 	qid q;
 	
-	if ((rand () % IDK_CHANCE) == 0) {
-		do
-			q = rand() % QUESTIONS;
-		while (
-			(CurAns [q] != TD_UNKNOWN) ||
-			(Characters[Target].info.q [q] != 
-		);
+	for (;;) {
+		while (CurAns[(q = rand() % (QUESTIONS))] != TD_UNKNOWN);
+		if ((rand () % IDK_CHANCE) == 0) {
+			if (Characters[Target].info.q[q] == TD_UNKNOWN) return q;
+		} else return q;
 	}
-	
-	while (CurAns[(q = rand() % (QUESTIONS))] != TD_UNKNOWN);
-	return q;
 }
 
 void init (void) {
