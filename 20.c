@@ -117,8 +117,8 @@ cid highestchance (void) {
 void train (qid qu, ans an) {
 	cid hc = highestchance ();
 	
-	if (TrainingDat[hc].q[qu] == TD_UNKNOWN)
-		TrainingDat[hc].q[qu] = an;
+	if (Characters[hc].info.q[qu] == TD_UNKNOWN)
+		Characters[hc].info.q[qu] = an;
 	
 	CurAns [qu] = an;
 	
@@ -220,15 +220,23 @@ void init (void) {
 		CurAns [i] = TD_UNKNOWN;
 }
 
+void init_td (void) {
+	const char initialcsv[] = "i have no idea";
+}
+
 void main () {
+begin:
 	puts ("Initializing...");
 	init ();
-	puts ("Loading `training.csv`...");
 	if (loadchars ("training.csv")) {
-		puts ("ERROR: Cannot find `training.csv`!");
-		puts ("Please create it and put the data table in it");
-		puts ("See the source code for information on how to create it.");
-		exit (1);
+		printf ("Warning: Training data not found, should I create it? (Y/N)\t");
+		if (parseans (getchar ()) == TD_TRUE) {
+			init_td ();
+			goto begin;
+		} else {
+			puts ("Aborting");
+			exit (1);
+		}
 	}
 	
 	for (uchar i = 0; i != 19; i++) {
