@@ -13,6 +13,8 @@
 #define QUESTIONS (LEN(Questions) - 1)
 #define NAMELEN 20
 
+#define print(s) printf("%s", s)
+
 #define TD_TRUE 2
 #define TD_FALSE 1
 #define TD_UNKNOWN 0
@@ -215,11 +217,13 @@ void init (void) {
 }
 
 void main () {
+	puts ("Initializing...");
 	init ();
+	puts ("Loading `training.csv`...");
 	if (loadchars ("training.csv")) {
-		puts ("ERROR: Cannot find `training.csv`!\n");
-		puts ("Please create it and put the data table in it\n");
-		puts ("See the source code for information on how to create it.\n");
+		puts ("ERROR: Cannot find `training.csv`!");
+		puts ("Please create it and put the data table in it");
+		puts ("See the source code for information on how to create it.");
 		exit (1);
 	}
 	
@@ -236,12 +240,12 @@ void main () {
 	printf ("Are you %s? ", Characters[highestchance ()].info.name);
 	
 	if (parseans (getchar ()) == TD_TRUE) {
-		puts ("Yay!\n");
+		puts ("Yay!");
 	} else {
 	
 		char name [NAMELEN+2];
-		do puts ("Aww...\nWho are you, then? ");
-		while (scanf ("%[a-z ]"STR(NAMELEN+1)"\n", name)) puts ("h");
+		do printf ("Aww...\nWho are you, then? ");
+		while (scanf ("%[a-z ]"STR(NAMELEN+1)"\n", name));
 		puts (name);
 		
 	}
