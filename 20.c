@@ -57,6 +57,13 @@ const char* Questions[] = {
 	"Do you primarily use Python? (ie. use it more often than other languages)",
 	"Are you a \"long-standing\" member of Esolangs?",
 	"Do you have a (meaningful) website?",
+	"Are you currently in high school?",
+	"Have you ever participated in code guessing?",
+	"Have you ever had a LyricLy or gollark name derivative?",
+	"Are you from Europe?",
+	"Have you ever developed for an embedded system?",
+	"Are you multilingual?",
+	"Is English your primary language?",
 	""
 };
 
