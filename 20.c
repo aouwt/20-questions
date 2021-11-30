@@ -1,8 +1,8 @@
-#include <time.h>
-#include <malloc.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+//#include <time.h>
+//#include <malloc.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
@@ -18,11 +18,16 @@
 
 #define IDK_CHANCE /* 1 / */ 2
 
-typedef unsigned char uchar;
-typedef unsigned int uint;
-typedef uchar ans;
-typedef uint qid;
-typedef uint cid;
+//typedef unsigned char uchar;
+//typedef unsigned int uint;
+//typedef uchar ans;
+//typedef uint qid;
+//typedef uint cid;
+#define uchar unsigned char
+#define uint unsigned int
+#define ans uchar
+#define qid uint
+#define cid uint
 
 const char* Questions[] = {
 	"Are you transgender?",
