@@ -226,6 +226,11 @@ void init (void) {
 		CurAns [i] = TD_UNKNOWN;
 }
 
+void deinit (void) {
+	free (TrainingDat); free (Characters);
+	TrainingDatLen = 0; CharactersLen = 0;
+}
+
 void init_td (void) {
 	const char initialcsv[] = "i have no idea";
 }
@@ -253,8 +258,6 @@ void insertchar (char* name) {
 	}
 	
 	// if it cant find it then add it
-	puts ("Entering into database...");
-	
 	for (uchar i = 0; i != NAMELEN+1; i++)
 		Characters[CharactersLen].info.name[i] = name [i];
 		
@@ -266,7 +269,6 @@ void insertchar (char* name) {
 
 void main () {
 begin:
-	puts ("Initializing...");
 	init ();
 	if (loadchars (".td")) {
 		printf ("Warning: Training data not found, should I create it? (Y/N)\t");
@@ -279,9 +281,9 @@ begin:
 		}
 	}
 	
-	for (uchar i = 0; i != 19; i++) {
+	for (uchar i = 0; i != 20; i++) {
 		qid qu = getquestion ();
-		printf ("%s (Y/N)\t", Questions[qu]);
+		printf ("%u\t%s (Y/N)\t", i+1, Questions[qu]);
 		
 		ans an = parseans (getchar ());
 		while (getchar () != '\n');
@@ -309,4 +311,6 @@ begin:
 	}
 	
 	savechars (".td");
+	
+	deinit ();
 }
