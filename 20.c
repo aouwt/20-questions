@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 //#include <readline.h>
 //#include <history.h>
 //#include <math.h>
@@ -229,6 +230,40 @@ void init_td (void) {
 	const char initialcsv[] = "i have no idea";
 }
 
+void trainchar (cid c) {
+	for (qid q = 0; q != QUESTIONS; q++) {
+		if (CurAns [q] != TD_UNKNOWN) {
+		
+			if (Characters[c].info.q[q] == TD_UNKNOWN) // if unknown then set to known
+				Characters[c].info.q[q] = CurAns [q];
+			else
+			if (Characters[c].info.q[q] != CurAns [q])
+				Characters[c].info.q[q] = TD_UNKNOWN; // if they conflict then set it to unknown
+		
+		}
+	}
+}
+
+void insertchar (char* name) {
+	for (cid c = 0; c != CharactersLen; c++) {
+		if (!strcmp (Characters[c].info.name, name)) {
+			trainchar (c);
+			return;
+		}
+	}
+	
+	// if it cant find it then add it
+	puts ("Entering into database...");
+	
+	for (uchar i = 0; i != NAMELEN+1; i++)
+		Characters[CharactersLen].info.name[i] = name [i];
+		
+	for (qid i = 0; i != QUESTIONS; i++)
+		Characters[CharactersLen].info.q[i] = CurAns [i];
+	
+	CharactersLen ++; // we already have it reserved in `loadchars()`
+}
+
 void main () {
 begin:
 	puts ("Initializing...");
@@ -258,24 +293,19 @@ begin:
 	
 	if (parseans (getchar ()) == TD_TRUE) {
 		puts ("Yay!");
+		trainchar (Target);
 		
 	} else {
 	
 		char name [NAMELEN+2];
 		char fmt [20]; snprintf (fmt, LEN(fmt), "%%%u[^\n]", (uint)(NAMELEN+1));
+		
+		while (getchar() != '\n');
 
 		do printf ("Aww...\nWho are you, then? ");
 		while (scanf (fmt, name) == EOF);
-
-		puts ("Entering into database...");
 		
-		CharactersLen ++;
-
-		for (uchar i = 0; i != NAMELEN+1; i++)
-			Characters[TrainingDatLen].info.name[i] = name[i];
-			
-		for (qid i = 0; i != QUESTIONS; i++)
-			Characters[TrainingDatLen].info.q[i] = CurAns [i];
+		insertchar (name);
 	}
 	
 	savechars (".td");
