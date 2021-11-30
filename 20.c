@@ -71,25 +71,37 @@ typedef struct {
 } character;
 
 
+
+
+
 character *Characters; cid CharactersLen = 0;
 tdat *TrainingDat; cid TrainingDatLen = 0;
 ans CurAns [QUESTIONS+1];
 cid Target = 0;
 
+
+
+
+
+
 float chance (character *C) { // calculates the chance of a character being the right guess
 	qid e = 0;
 	
 	for (qid i = 0; i != QUESTIONS; i++) {
+	
 		if ((CurAns [i] == TD_UNKNOWN) || (C -> info.q [i] == TD_UNKNOWN)) continue;
+		
 		if (CurAns [i] == C -> info.q [i])
 			e++;
-		else {
+		else
 			e = ((int)e - (int)(QUESTIONS/2) < 0) ? 0 : e - (QUESTIONS/2);
-		}
+		
 	}
 
 	return (C -> chance = (e / QUESTIONS));
 }
+
+
 
 ans parseans (char a) { // string to ans
 	switch (a) {
@@ -102,6 +114,8 @@ ans parseans (char a) { // string to ans
 	}
 }
 
+
+
 cid highestchance (void) { // finds most likely match
 	float curch = 0;
 	cid h = 0;
@@ -112,9 +126,10 @@ cid highestchance (void) { // finds most likely match
 			h = c;
 		}
 	}
-	
 	return h;
 }
+
+
 
 void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown things
 	// TODO: make better
@@ -124,18 +139,9 @@ void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown 
 		Characters[Target].info.q[qu] = an;
 	
 	CurAns [qu] = an;
-	
-	/*for (cid c = 0; c != TrainingDatLen; c++) {
-		
-		if (TrainingDat[c].q[qu] == TD_UNKNOWN) {
-			if (c == hc) {
-				TrainingDat[c].q[qu] = an;
-				return;
-			}
-		}
-	
-	}*/
 }
+
+
 
 uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
 	
@@ -185,6 +191,8 @@ uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
 	return 0;
 }
 
+
+
 uchar savechars (void) { // stores Characters to CSV file -- this is partially broken
 	FILE* f = fopen (TDFILE, "w");
 	if (f == NULL) return 1;
@@ -220,6 +228,8 @@ qid getquestion (void) { // Chooses a question
 	}
 }
 
+
+
 void init (void) { // mallocs and stuff
 	free (TrainingDat); free (Characters);
 	TrainingDat = (tdat*) malloc (((TrainingDatLen = 100) + 1) * sizeof (tdat));
@@ -228,10 +238,14 @@ void init (void) { // mallocs and stuff
 		CurAns [i] = TD_UNKNOWN;
 }
 
+
+
 void deinit (void) { // frees
 	free (TrainingDat); free (Characters);
 	TrainingDatLen = 0; CharactersLen = 0;
 }
+
+
 
 void init_td (void) { // creates initial CSV file
 	// TODO: fill this out
@@ -244,6 +258,8 @@ void init_td (void) { // creates initial CSV file
 	
 	fclose (f);
 }
+
+
 
 void trainchar (cid c) {
 	for (qid q = 0; q != QUESTIONS; q++) {
@@ -277,6 +293,8 @@ void insertchar (char* name) {
 	CharactersLen ++; // we already have it reserved in `loadchars()`
 }
 
+
+
 int main () {
 begin:
 	init ();
@@ -308,7 +326,6 @@ begin:
 		trainchar (Target);
 		
 	} else {
-	
 		char name [NAMELEN+2];
 		char fmt [20]; snprintf (fmt, LEN(fmt), "%%%u[^\n]", (uint)(NAMELEN+1));
 		
