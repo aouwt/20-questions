@@ -47,7 +47,7 @@ const char* Questions[] = {
 	"Tabs (Y) or spaces (N)?",
 	"Is programming your primary hobby?",
 	"Do people call you by your nickname/real name more often than your username/online name?",
-	"`func(...);` (Y) or `func (...);` (N)?",
+	"`if(...)` (Y) or `if (...)` (N)?",
 	"Do you actively participate in the Esolangs community? (ie. develop and utilize esolangs)",
 	"Do you enjoy linguistics? (eg. conlangs)",
 	"Do you use Windows primarily?",
