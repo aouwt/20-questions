@@ -134,10 +134,10 @@ cid highestchance (void) { // finds most likely match
 void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown things
 	// TODO: make better
 	Target = highestchance ();
-	
+/*	
 	if (Characters[Target].info.q[qu] == TD_UNKNOWN)
 		Characters[Target].info.q[qu] = an;
-	
+*/
 	CurAns [qu] = an;
 }
 
