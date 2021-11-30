@@ -1,11 +1,8 @@
+#include <time.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <readline.h>
-//#include <history.h>
-//#include <math.h>
-//#pragma GCC optimize ("-Os")
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
@@ -243,6 +240,8 @@ void init (void) { // mallocs and stuff
 	
 	for (qid i = 0; i != QUESTIONS; i++)
 		CurAns [i] = TD_UNKNOWN;
+
+	srand (time (0));
 }
 
 
