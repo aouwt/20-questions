@@ -11,6 +11,8 @@
 #define QUESTIONS (LEN(Questions) - 1)
 #define NAMELEN 20
 
+#define TDFILE ".td"
+
 #define print(s) printf("%s", s)
 
 #define TD_TRUE 2
@@ -74,7 +76,7 @@ tdat *TrainingDat; cid TrainingDatLen = 0;
 ans CurAns [QUESTIONS+1];
 cid Target = 0;
 
-float chance (character *C) {
+float chance (character *C) { // calculates the chance of a character being the right guess
 	qid e = 0;
 	
 	for (qid i = 0; i != QUESTIONS; i++) {
@@ -82,14 +84,14 @@ float chance (character *C) {
 		if (CurAns [i] == C -> info.q [i])
 			e++;
 		else {
-			e = (e - (QUESTIONS/2) < 0) ? 0 : e - (QUESTIONS/2);
+			e = ((int)e - (int)(QUESTIONS/2) < 0) ? 0 : e - (QUESTIONS/2);
 		}
 	}
 
 	return (C -> chance = (e / QUESTIONS));
 }
 
-ans parseans (char a) {
+ans parseans (char a) { // string to ans
 	switch (a) {
 		case 'Y': case 'y': case 'T': case 't':
 			return TD_TRUE;
@@ -100,7 +102,7 @@ ans parseans (char a) {
 	}
 }
 
-cid highestchance (void) {
+cid highestchance (void) { // finds most likely match
 	float curch = 0;
 	cid h = 0;
 	
@@ -114,7 +116,8 @@ cid highestchance (void) {
 	return h;
 }
 
-void train (qid qu, ans an) {
+void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown things
+	// TODO: make better
 	Target = highestchance ();
 	
 	if (Characters[Target].info.q[qu] == TD_UNKNOWN)
@@ -134,11 +137,11 @@ void train (qid qu, ans an) {
 	}*/
 }
 
-uchar loadchars (const char* path) {
+uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
 	
 	{
 		char answers [QUESTIONS + 2];
-		FILE* f = fopen (path, "r");
+		FILE* f = fopen (TDFILE, "r");
 		if (f == NULL) return 1;
 		cid ent;
 		
@@ -182,8 +185,8 @@ uchar loadchars (const char* path) {
 	return 0;
 }
 
-uchar savechars (const char* path) {
-	FILE* f = fopen (path, "w");
+uchar savechars (void) { // stores Characters to CSV file -- this is partially broken
+	FILE* f = fopen (TDFILE, "w");
 	if (f == NULL) return 1;
 	
 	for (cid ent = 0; ent != CharactersLen; ent++) {
@@ -206,8 +209,7 @@ uchar savechars (const char* path) {
 	return 0;
 }
 
-qid getquestion (void) {
-	// TODO: better alg
+qid getquestion (void) { // Chooses a question
 	qid q;
 	
 	for (;;) {
@@ -218,7 +220,7 @@ qid getquestion (void) {
 	}
 }
 
-void init (void) {
+void init (void) { // mallocs and stuff
 	free (TrainingDat); free (Characters);
 	TrainingDat = (tdat*) malloc (((TrainingDatLen = 100) + 1) * sizeof (tdat));
 	
@@ -226,23 +228,31 @@ void init (void) {
 		CurAns [i] = TD_UNKNOWN;
 }
 
-void deinit (void) {
+void deinit (void) { // frees
 	free (TrainingDat); free (Characters);
 	TrainingDatLen = 0; CharactersLen = 0;
 }
 
-void init_td (void) {
-	const char initialcsv[] = "i have no idea";
+void init_td (void) { // creates initial CSV file
+	// TODO: fill this out
+	const char initialcsv[] = "(null),?";
+	
+	FILE* f = fopen (TDFILE, "w");
+	if (f == NULL) return;
+	
+	fprintf (f, "%s", initialcsv);
+	
+	fclose (f);
 }
 
 void trainchar (cid c) {
 	for (qid q = 0; q != QUESTIONS; q++) {
 		if (CurAns [q] != TD_UNKNOWN) {
 		
-			if (Characters[c].info.q[q] == TD_UNKNOWN) // if unknown then set to known
+			if (TrainingDat[c].q[q] == TD_UNKNOWN) // if unknown then set to known
 				Characters[c].info.q[q] = CurAns [q];
 			else
-			if (Characters[c].info.q[q] != CurAns [q])
+			if (TrainingDat[c].q[q] != CurAns [q])
 				Characters[c].info.q[q] = TD_UNKNOWN; // if they conflict then set it to unknown
 		
 		}
@@ -267,10 +277,10 @@ void insertchar (char* name) {
 	CharactersLen ++; // we already have it reserved in `loadchars()`
 }
 
-void main () {
+int main () {
 begin:
 	init ();
-	if (loadchars (".td")) {
+	if (loadchars ()) {
 		printf ("Warning: Training data not found, should I create it? (Y/N)\t");
 		if (parseans (getchar ()) == TD_TRUE) {
 			init_td ();
@@ -310,7 +320,7 @@ begin:
 		insertchar (name);
 	}
 	
-	savechars (".td");
+	savechars ();
 	
 	deinit ();
 }
