@@ -1,8 +1,10 @@
-//#include <time.h>
-//#include <malloc.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
+#ifndef release
+	#include <time.h>
+	#include <malloc.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+#endif
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
@@ -18,16 +20,19 @@
 
 #define IDK_CHANCE /* 1 / */ 2
 
-//typedef unsigned char uchar;
-//typedef unsigned int uint;
-//typedef uchar ans;
-//typedef uint qid;
-//typedef uint cid;
-#define uchar unsigned char
-#define uint unsigned int
-#define ans uchar
-#define qid uint
-#define cid uint
+#ifndef release
+	typedef unsigned char uchar;
+	typedef unsigned int uint;
+	typedef uchar ans;
+	typedef uint qid;
+	typedef uint cid;
+#else
+	#define uchar unsigned char
+	#define uint unsigned int
+	#define ans uchar
+	#define qid uint
+	#define cid uint
+#endif
 
 const char* Questions[] = {
 	"Are you transgender?",
@@ -305,13 +310,28 @@ void insertchar (char* name) {
 }
 
 
+ans getans (void) {
+	ans ret;
+
+	#ifdef release
+loop:
+		if ((ret = parseans (getchar ())) == TD_UNKNOWN) goto loop;
+
+	#else
+		ret = parseans (getchar ());
+	#endif
+
+	while (getchar () != '\n');
+	return ret;
+}
+
 
 int main () {
 begin:
 	init ();
 	if (loadchars ()) {
 		printf ("Warning: Training data not found, should I create it? (Y/N)\t");
-		if (parseans (getchar ()) == TD_TRUE) {
+		if (getans () == TD_TRUE) {
 			init_td ();
 			goto begin;
 		} else {
@@ -324,23 +344,18 @@ begin:
 		qid qu = getquestion ();
 		printf ("%u\t%s (Y/N)\t", i+1, Questions[qu]);
 		
-		ans an = parseans (getchar ());
-		while (getchar () != '\n');
-		
-		train (qu, an);
+		train (qu, getans ());
 	}
 	
 	printf ("Are you %s? ", Characters[Target].info.name);
 	
-	if (parseans (getchar ()) == TD_TRUE) {
+	if (getans () == TD_TRUE) {
 		puts ("Yay!");
 		trainchar (Target);
 		
 	} else {
 		char name [NAMELEN+2];
 		char fmt [20]; snprintf (fmt, LEN(fmt), "%%%u[^\n]", (uint)(NAMELEN+1));
-		
-		while (getchar() != '\n');
 
 		do printf ("Aww...\nWho are you, then? ");
 		while (scanf (fmt, name) == EOF);
