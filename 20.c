@@ -74,16 +74,27 @@ const char* Questions[] = {
 	""
 };
 
-typedef struct {
-	char name [NAMELEN+2];
-	ans q[QUESTIONS+1];
-} tdat;
+#ifdef release
+	#define tdat struct { \
+			char name [NAMELEN+2]; \
+			ans q [QUESTIONS+1]; \
+		}
+	
+	#define character struct { \
+			tdat info; \
+			float chance; \
+		}
+#else
+	typedef struct {
+		char name [NAMELEN+2];
+		ans q[QUESTIONS+1];
+	} tdat;
 
-typedef struct {
-	tdat info;
-	float chance;
-} character;
-
+	typedef struct {
+		tdat info;
+		float chance;
+	} character;
+#endif
 
 
 
@@ -112,7 +123,8 @@ float chance (character *C) { // calculates the chance of a character being the 
 		
 	}
 
-	return (C -> chance = (e / QUESTIONS));
+	//printf ("\t%i\n", (int)e);
+	return (C -> chance = (float)e / (float)QUESTIONS);
 }
 
 
@@ -134,7 +146,7 @@ cid highestchance (void) { // finds most likely match
 	float curch = 0;
 	cid h = 0;
 	
-	for (cid c = 0; c != TrainingDatLen; c++) {
+	for (cid c = 0; c != CharactersLen; c++) {
 		if (chance(&Characters[c]) > curch) {
 			curch = Characters[c].chance;
 			h = c;
