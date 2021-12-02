@@ -1,9 +1,0 @@
-REMEMBER that this is for CODE GUESSING, make sure to cover up any associations with me
-1. Choose a person to poll (doesnt matter who)
-2. Run the program, and ask the person the questions presented to you
-3. If they are unsure, then press enter twice to skip the question
-4. When it gets to the point that says "Are you ___", press N then enter
-5. type in the commonly used name for that person in the feild in lowercase
-  (eg, RocketRace -> olivia, SlaveGirlSofia -> sofia, etc.)
-6. repeat for as many people as wanted, preferrably >5
-7. send the `.td` file, in the same directory as the executable, to me
