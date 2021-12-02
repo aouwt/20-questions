@@ -34,7 +34,7 @@
 	#define cid uint
 #endif
 
-const char* Questions[] = {
+static const char* Questions[] = {
 	"Are you transgender?",
 	"Are you gay/lesbian/bi/etc.?",
 	"Are you an adult?",
@@ -99,17 +99,17 @@ const char* Questions[] = {
 
 
 
-character *Characters; cid CharactersLen = 0;
-tdat *TrainingDat; cid TrainingDatLen = 0;
-ans CurAns [QUESTIONS+1];
-cid Target = 0;
+static character *Characters; static cid CharactersLen = 0;
+static tdat *TrainingDat; static cid TrainingDatLen = 0;
+static ans CurAns [QUESTIONS+1];
+static cid Target = 0;
 
 
 
 
 
 
-float chance (character *C) { // calculates the chance of a character being the right guess
+static float chance (character *C) { // calculates the chance of a character being the right guess
 	qid e = 0;
 	
 	for (qid i = 0; i != QUESTIONS; i++) {
@@ -129,7 +129,7 @@ float chance (character *C) { // calculates the chance of a character being the 
 
 
 
-ans parseans (char a) { // string to ans
+static ans parseans (char a) { // string to ans
 	switch (a) {
 		case 'Y': case 'y': case 'T': case 't':
 			return TD_TRUE;
@@ -142,7 +142,7 @@ ans parseans (char a) { // string to ans
 
 
 
-cid highestchance (void) { // finds most likely match
+static cid highestchance (void) { // finds most likely match
 	float curch = 0;
 	cid h = 0;
 	
@@ -157,7 +157,7 @@ cid highestchance (void) { // finds most likely match
 
 
 
-void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown things
+static void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown things
 	// TODO: make better
 	Target = highestchance ();
 /*	
@@ -169,7 +169,7 @@ void train (qid qu, ans an) { // "trains" the "ai" -- just fills in any unknown 
 
 
 
-uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
+static uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
 	
 	{
 		char answers [QUESTIONS + 2];
@@ -219,7 +219,7 @@ uchar loadchars (void) { // loads the CSV file into TrainingDat and Characters
 
 
 
-uchar savechars (void) { // stores Characters to CSV file -- this is partially broken
+static uchar savechars (void) { // stores Characters to CSV file -- this is partially broken
 	FILE* f = fopen (TDFILE, "w");
 	if (f == NULL) return 1;
 	
@@ -243,7 +243,7 @@ uchar savechars (void) { // stores Characters to CSV file -- this is partially b
 	return 0;
 }
 
-qid getquestion (void) { // Chooses a question
+static qid getquestion (void) { // Chooses a question
 	qid q;
 	
 	for (;;) {
@@ -256,7 +256,7 @@ qid getquestion (void) { // Chooses a question
 
 
 
-void init (void) { // mallocs and stuff
+static void init (void) { // mallocs and stuff
 	free (TrainingDat); free (Characters);
 	TrainingDat = (tdat*) malloc (((TrainingDatLen = 100) + 1) * sizeof (tdat));
 	
@@ -268,14 +268,14 @@ void init (void) { // mallocs and stuff
 
 
 
-void deinit (void) { // frees
+static void deinit (void) { // frees
 	free (TrainingDat); free (Characters);
 	TrainingDatLen = 0; CharactersLen = 0;
 }
 
 
 
-void init_td (void) { // creates initial CSV file
+static void init_td (void) { // creates initial CSV file
 	// TODO: fill this out
 	const char initialcsv[] = "(null),?";
 	
@@ -289,7 +289,7 @@ void init_td (void) { // creates initial CSV file
 
 
 
-void trainchar (cid c) {
+static void trainchar (cid c) {
 	for (qid q = 0; q != QUESTIONS; q++) {
 		if (CurAns [q] != TD_UNKNOWN) {
 		
@@ -303,7 +303,7 @@ void trainchar (cid c) {
 	}
 }
 
-void insertchar (char* name) {
+static void insertchar (char* name) {
 	for (cid c = 0; c != CharactersLen; c++) {
 		if (!strcmp (Characters[c].info.name, name)) {
 			trainchar (c);
@@ -322,7 +322,7 @@ void insertchar (char* name) {
 }
 
 
-ans getans (void) {
+static ans getans (void) {
 	ans ret;
 
 	#ifdef release
