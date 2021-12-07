@@ -45,7 +45,7 @@ static const char* Questions[] = {
 	"Do you have your own Discord server? (doesn't include \"test servers\")",
 	"Do you have a GitHub account?",
 	"Do you live in the U.S.A.?",
-	"Do you routinely exercize?",
+	"Do you routinely exercise?",
 	"Have you ever had a pet?",
 	"Do you regularly use Rust?",
 	"Do you often try to program in esoteric programming languages?",
@@ -74,27 +74,15 @@ static const char* Questions[] = {
 	""
 };
 
-#ifdef release
-	#define tdat struct { \
-			char name [NAMELEN+2]; \
-			ans q [QUESTIONS+1]; \
-		}
-	
-	#define character struct { \
-			tdat info; \
-			float chance; \
-		}
-#else
-	typedef struct {
-		char name [NAMELEN+2];
-		ans q[QUESTIONS+1];
-	} tdat;
+typedef struct {
+	char name [NAMELEN+2];
+	ans q[QUESTIONS+1];
+} tdat;
 
-	typedef struct {
-		tdat info;
-		float chance;
-	} character;
-#endif
+typedef struct {
+	tdat info;
+	float chance;
+} character;
 
 
 
@@ -277,7 +265,7 @@ static void deinit (void) { // frees
 
 static void init_td (void) { // creates initial CSV file
 	// TODO: fill this out
-	const char initialcsv[] = "(null),?";
+	const char initialcsv[] = "lyricly,??FF??FFT?F??T?TFT?F?TFFTT??FT??FF??\nkit,TT?T??????F??FFTTTTFTFF?TF??T?F?F?T?\niso,FTF?FFT?TT?TF?FF?TF?T??F??FF?F?F????\numnikos,F?????T??F?TF?F???T?FFFT?FTFFTTTT?F?\nifcoltransg,??TFF??FTFFT??FTF??F??F??T?TFT?F?TT?\npyrotelekinetic,F???TFFFTTF??FFT?T??F???T?TFFTT?T???";
 	
 	FILE* f = fopen (TDFILE, "w");
 	if (f == NULL) return;
@@ -337,6 +325,12 @@ loop:
 	return ret;
 }
 
+char* lcase (char* str) {
+	for (uint i = 0; str [i]; i++)
+		if (str [i] >= 'A' && str [i] <= 'Z') str [i] -= 'a' - 'A';
+	return str;
+}
+
 
 int main () {
 begin:
@@ -372,7 +366,7 @@ begin:
 		do printf ("Aww...\nWho are you, then? ");
 		while (scanf (fmt, name) == EOF);
 		
-		insertchar (name);
+		insertchar (lcase(name));
 	}
 	
 	savechars ();
