@@ -327,7 +327,7 @@ loop:
 
 char* lcase (char* str) {
 	for (uint i = 0; str [i]; i++)
-		if (str [i] >= 'A' && str [i] <= 'Z') str [i] -= 'a' - 'A';
+		if (str [i] >= 'A' && str [i] <= 'Z') str [i] -= 'A' - 'a';
 	return str;
 }
 
