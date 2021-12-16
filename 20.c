@@ -1,10 +1,8 @@
-#ifndef release
-	#include <time.h>
-	#include <malloc.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-#endif
+#include <time.h>
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 #define QUESTIONS (LEN(Questions) - 1)
@@ -12,27 +10,17 @@
 
 #define TDFILE ".td"
 
-#define print(s) printf("%s", s)
-
 #define TD_TRUE 2
 #define TD_FALSE 1
 #define TD_UNKNOWN 0
 
 #define IDK_CHANCE /* 1 / */ 2
 
-#ifndef release
-	typedef unsigned char uchar;
-	typedef unsigned int uint;
-	typedef uchar ans;
-	typedef uint qid;
-	typedef uint cid;
-#else
-	#define uchar unsigned char
-	#define uint unsigned int
-	#define ans uchar
-	#define qid uint
-	#define cid uint
-#endif
+typedef unsigned char uchar;
+typedef unsigned int uint;
+typedef uchar ans;
+typedef uint qid;
+typedef uint cid;
 
 static const char* Questions[] = {
 	"Are you transgender?",
