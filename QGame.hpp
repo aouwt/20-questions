@@ -1,9 +1,8 @@
-#inlcude "common.hpp"
+#include "common.hpp"
 
 class QGame {
 	public:
 
-		typedef u8 answer_t;
 		typedef u16 qid_t;
 		typedef u16 cid_t;
 
