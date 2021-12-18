@@ -8,7 +8,8 @@
 
 void QGame::Init (void) {
 	free (Character);
-	Character = new QGame::character_t [CharactersAlloc = 10];
+	Character = new character_t [CharactersAlloc = 10];
+	Target = &Character [0];
 }
 
 
@@ -22,23 +23,25 @@ void QGame::DeInit (void) {
 
 void QGame::SetQuestions (const char* q[]) {
 	Question = q;
+	for (Questions = 0; q [Questions] [0] != '\0'; Questions ++);
+	Questions --;
 }
 
 
 
-void QGame::CopyCharacter (QGame::character_t* c, cid_t slot) {
-	for (QGame::qid_t q = 0; q != Questions; q ++)
+void QGame::CopyCharacter (character_t* c, cid_t slot) {
+	for (qid_t q = 0; q != Questions; q ++)
 		Character[slot].answer [q] = c -> answer [q];
 	
-	for (size_t i = 0; i != NAMELEN+1; i ++)
+	for (size_t i = 0; i != QGAME_NAMELEN + 1; i ++)
 		Character[slot].name [i] = c -> name [i];
 }
 
 
 
-err_t QGame::NewCharacter (QGame::character_t* c) {
+err_t QGame::NewCharacter (character_t* c) {
 	if (Characters+1 >= CharactersAlloc)
-		if (reallocarray (&Character, sizeof(QGame::character_t), (CharactersAlloc += 10)) == NULL)
+		if (reallocarray (&Character, sizeof(character_t), (CharactersAlloc += 10)) == NULL)
 			return 1;
 	
 	CopyCharacter (c, ++ Characters);
@@ -49,7 +52,35 @@ err_t QGame::NewCharacter (QGame::character_t* c) {
 
 
 err_t QGame::LoadCSV (FILE* f) {
+
+	for (cid_t ent = 0;; ent ++) {
+		
+		char fmt [20];
+		if (snprintf (fmt, LEN (fmt), "%%%u[^,],%%%u[ynu]\n", (unsigned int) (QGAME_NAMELEN + 1), (unsigned int) (Questions + 1)) == NULL)
+			return 1;
+		
+		
+		char ans [Questions + 2];
+		character_t chr;
+		
+		if (fscanf (f, fmt, chr.name, ans) == NULL)
+			return 2;
+		
+		
+		for (qid_t q = 0; q != Questions; q ++) {
+			switch (ans [q]) {
+				case 'y': chr.answer [q] = T; break;
+				case 'n': chr.answer [q] = F; break;
+				case 'u': chr.answer [q] = U; break;
+				default: return -1;
+			}
+		}
+		
+		if (NewCharacter (&chr)) return -2;
+		
+	}
 	
+	return 0;
 }
 
 
@@ -59,14 +90,28 @@ err_t QGame::SaveCSV (FILE* f) {
 }
 
 
+const char* QGame::GetQuestion (void) {
+	qid_t q;
+	return GetQuestion (&q);
+}
 
-char* QGame::GetQuestion (void) {
-	
+
+const char* QGame::GetQuestion (qid_t *id) {
+	for (;;) {
+		*id = rand () % Questions;
+		
+		if (UserAnswer [*id] == U) continue; // dont ask duplicates
+		
+		if ((rand () % QGAME_RANDQCHANCE) == 0) {
+			if (Target -> answer [*id] == U) return Question [*id];
+		} else
+			return Question [*id];
+	}
 }
 
 
 
-void QGame::SubmitAns (QGame::qid_t q, QGame::answer_t a) {
+void QGame::SubmitAns (qid_t q, answer_t a) {
 	
 }
 
@@ -85,16 +130,16 @@ char* lcase (char* str) {
 	return str;
 }
 
-void QGame::TrainModel (QGame::character_t* correct) {
+err_t QGame::TrainModel (character_t* correct) {
 	lcase (correct -> name);
 	
 	// See if we can find the character as preexisting
-	QGame::cid_t c = 0;
+	cid_t c = 0;
 	for (; c != Characters; c ++)
 		if (!strcmp (Character[c].name, correct -> name)) goto has;
 	
 	// does not have
-	CERR ("NewCharacter", NewCharacter (correct));
+	if (NewCharacter (correct)) return 1;
 	
 	has:
 	CopyCharacter (correct, c);
@@ -109,4 +154,6 @@ void QGame::TrainModel (QGame::character_t* correct) {
 		
 		}
 	}
+	
+	return 0;
 }
