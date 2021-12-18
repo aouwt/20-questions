@@ -25,7 +25,7 @@
 			
 			void Init (void);
 			void DeInit (void);
-			void SetQuestions (char*** q);
+			void SetQuestions (const char* q[]);
 			
 			err_t LoadCSV (FILE* f);
 			err_t SaveCSV (FILE* f);
@@ -40,7 +40,7 @@
 		private:
 			cid_t CharactersAlloc = 0;
 			character_t* Target = NULL; cid_t TargetCharacter = 0;
-			char*** Question = NULL; qid_t Questions = 0;
+			const char** Question = NULL; qid_t Questions = 0;
 			
 			err_t NewCharacter (character_t* c);
 			void CopyCharacter (character_t* c, cid_t slot);

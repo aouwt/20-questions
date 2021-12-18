@@ -1,25 +1,26 @@
 #include <string.h>
 #include <malloc.h>
 #include <errno.h>
-#include <stdlib.h>
 #include "QGame.hpp"
 
 
 
 
 void QGame::Init (void) {
-	
+	free (Character);
+	Character = new QGame::character_t [CharactersAlloc = 10];
 }
 
 
 
 void QGame::DeInit (void) {
-	
+	free (Character);
+	CharactersAlloc = 0;
 }
 
 
 
-void QGame::SetQuestions (char*** q) {
+void QGame::SetQuestions (const char* q[]) {
 	Question = q;
 }
 

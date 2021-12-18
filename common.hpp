@@ -1,5 +1,7 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
+	#include <stdio.h>
+	#include <stdlib.h>
 	#include <stdint.h>
 
 
@@ -12,6 +14,8 @@
 				exit (1); \
 			} \
 		}
+	
+	#define LEN(arr) (sizeof ((arr)) / sizeof ((arr [0])))
 
 
 	typedef uint_least8_t u8;	typedef int_least8_t s8;
