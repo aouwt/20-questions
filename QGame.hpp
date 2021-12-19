@@ -48,5 +48,6 @@
 			
 			err_t NewCharacter (character_t* c);
 			void CopyCharacter (character_t* c, cid_t slot);
+			unsigned int random (void);
 	};
 #endif

@@ -24,6 +24,7 @@ void QGame::Init (void) {
 void QGame::DeInit (void) {
 	free (Character);
 	CharactersAlloc = 0;
+	fclose (urand);
 }
 
 
@@ -131,7 +132,7 @@ const char* QGame::GetQuestion (qid_t *id) {
 	for (;;) {
 		*id = RANDOM (qid_t) % Questions;
 		
-		if (UserAnswer [*id] == U) continue; // dont ask duplicates
+		if (UserAnswer [*id] != U) continue; // dont ask duplicates
 		
 		if ((RANDOM (u16) % QGAME_RANDQCHANCE) == 0) {
 			if (Target -> answer [*id] == U) return Question [*id];
@@ -188,3 +189,4 @@ err_t QGame::TrainModel (character_t* correct) {
 	
 	return 0;
 }
+

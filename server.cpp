@@ -24,8 +24,8 @@ void mkhtml (void) {
 		char resp [ans_len + 2];
 		strcpy (resp, ans);
 		
-		resp [q] = 'y'; printf ("<a href=\"?%s%s\">Yes</a>", nextq, resp);
-		resp [q] = 'n'; printf ("<a href=\"?%s%s\">No</a>", nextq, resp);
+		resp [q] = 'y'; printf ("<a href=\"?%s%s\">Yes</a>\n", nextq, resp);
+		resp [q] = 'n'; printf ("<a href=\"?%s%s\">No</a>\n", nextq, resp);
 	}
 }
 
@@ -37,6 +37,7 @@ int main (void) {
 	if (csv == NULL) return 1;
 	
 	query = getenv ("QUERY_STRING");
+	if (query == NULL) return 4;
 	puts ("\n");
 	
 	game.Init ();
@@ -54,18 +55,14 @@ int main (void) {
 		
 		for (; ans_len != LEN (Questions) - 2; ans_len ++) ans [ans_len] = 'u'; // append with unknowns
 		
-		for (size_t i = 0;; i ++) {
+		for (size_t i = 0; ans [i]; i ++) {
 			switch (ans [i]) {
-				case '\0': goto done;
 				case 'u': game.UserAnswer [i] = QGame::U; break;
 				case 'y': game.UserAnswer [i] = QGame::T; break;
 				case 'n': game.UserAnswer [i] = QGame::F; break;
 				default: return 3;
 			}
 		}
-		
-		
-		done:;
 	}
 	mkhtml ();
 	
