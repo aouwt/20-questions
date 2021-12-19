@@ -10,6 +10,7 @@ const char* Questions [] = {
 };
 
 
+FILE* csv;
 QGame game;
 int qno = 0;
 char* query = nullptr;
@@ -35,6 +36,9 @@ void mkhtml (void) {
 // ?Q=S
 // where Q is question number and S is the string of answers
 int main (void) {
+	csv = fopen ("/tmp/qgame/20q.csv", "rw");
+	if (csv == NULL) return 1;
+	
 	query = getenv ("QUERY_STRING");
 	puts ("\n");
 	
@@ -54,7 +58,7 @@ int main (void) {
 				case 'u': game.UserAnswer [i] = QGame::U; break;
 				case 'y': game.UserAnswer [i] = QGame::T; break;
 				case 'n': game.UserAnswer [i] = QGame::F; break;
-				default: exit (1);
+				default: return 2;
 			}
 		}
 		
