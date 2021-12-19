@@ -44,6 +44,8 @@
 			character_t* Target = nullptr; cid_t TargetCharacter = 0;
 			const char** Question = nullptr; qid_t Questions = 0;
 			
+			FILE* urand = nullptr;
+			
 			err_t NewCharacter (character_t* c);
 			void CopyCharacter (character_t* c, cid_t slot);
 	};

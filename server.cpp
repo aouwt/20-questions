@@ -3,11 +3,8 @@
 #include "QGame.hpp"
 
 const char* Questions [] = {
-//#include "questions.h"
-"test",
-"hi",
-""
-};
+#include "questions.h"
+,"" };
 
 
 FILE* csv;
@@ -36,7 +33,7 @@ void mkhtml (void) {
 // ?Q=S
 // where Q is question number and S is the string of answers
 int main (void) {
-	csv = fopen ("/tmp/qgame/20q.csv", "rw");
+	csv = fopen ("/usr/share/cgi-data/QGame/tdat.csv", "rw");
 	if (csv == NULL) return 1;
 	
 	query = getenv ("QUERY_STRING");
@@ -44,13 +41,18 @@ int main (void) {
 	
 	game.Init ();
 	game.SetQuestions (Questions);
+
+	if (game.LoadCSV (csv)) return -1;
 	
 	{ // parse arguments
 		
 		if (sscanf (query, "%u=%m[uyn]", &qno, &ans) == EOF)
-			exit (1);
+			return 1;
 		
-		if ((ans_len = strlen (ans)) >= LEN (Questions) - 1) exit (1);
+		ans_len = strlen (ans);
+		if (ans_len >= LEN (Questions) - 1) return 2;
+		
+		for (; ans_len != LEN (Questions) - 2; ans_len ++) ans [ans_len] = 'u'; // append with unknowns
 		
 		for (size_t i = 0;; i ++) {
 			switch (ans [i]) {
@@ -58,7 +60,7 @@ int main (void) {
 				case 'u': game.UserAnswer [i] = QGame::U; break;
 				case 'y': game.UserAnswer [i] = QGame::T; break;
 				case 'n': game.UserAnswer [i] = QGame::F; break;
-				default: return 2;
+				default: return 3;
 			}
 		}
 		
@@ -67,5 +69,6 @@ int main (void) {
 	}
 	mkhtml ();
 	
+	fclose (csv);
 	free (ans);
 }
