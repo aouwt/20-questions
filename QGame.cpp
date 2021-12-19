@@ -13,7 +13,6 @@
 
 
 void QGame::Init (void) {
-	free (Character);
 	Character = new character_t [CharactersAlloc = 10];
 	Target = &Character [0];
 	urand = fopen ("/dev/urandom", "r");
@@ -22,7 +21,7 @@ void QGame::Init (void) {
 
 
 void QGame::DeInit (void) {
-	free (Character);
+	delete[] Character;
 	CharactersAlloc = 0;
 	fclose (urand);
 }
@@ -52,7 +51,7 @@ err_t QGame::NewCharacter (character_t* c) {
 		if (reallocarray (&Character, sizeof(character_t), (CharactersAlloc += 10)) == NULL)
 			return 1;
 	
-	CopyCharacter (c, ++ Characters);
+	CopyCharacter (c, Characters ++);
 	
 	return 0;
 }
@@ -64,7 +63,7 @@ err_t QGame::LoadCSV (FILE* f) {
 	for (cid_t ent = 0;; ent ++) {
 		
 		char fmt [20];
-		if (snprintf (fmt, LEN (fmt), "%%%u[^,],%%%u[ynu]\n", (unsigned int) (QGAME_NAMELEN + 1), (unsigned int) (Questions + 1)) == EOF)
+		if (snprintf (fmt, LEN (fmt), "%%%u[^,],%%[ynu]\n", (unsigned int) (QGAME_NAMELEN + 2)/*, (unsigned int) (Questions + 2)*/) == EOF)
 			return -1;
 		
 		
@@ -104,8 +103,8 @@ err_t QGame::SaveCSV (FILE* f) {
 	for (cid_t ent = 0; ent != Characters; ent ++) {
 		char ans [Questions + 2];
 		
-		for (qid_t q = 0; q != Questions + 1; q ++) {
-			switch (Character[ent].answer [q]) {
+		for (qid_t q = 0; q != Questions; q ++) {
+			switch (Character [ent].answer [q]) {
 				case T: ans [q] = 'y'; break;
 				case F: ans [q] = 'n'; break;
 				case U: ans [q] = 'u'; break;
@@ -115,7 +114,7 @@ err_t QGame::SaveCSV (FILE* f) {
 		
 		ans [Questions + 1] = '\0';
 		
-		if (fprintf (f, "%s,%s\n", Character[ent].name, ans) < 0) return 1;
+		if (fprintf (f, "%s,%s\n", Character [ent].name, ans) < 0) return 1;
 	}
 	
 	return 0;
@@ -129,6 +128,12 @@ const char* QGame::GetQuestion (void) {
 
 
 const char* QGame::GetQuestion (qid_t *id) {
+	for (qid_t q = 0; q != Questions; q ++)
+		if (UserAnswer [q] == U) goto ok;
+	
+	return NULL;
+	
+	ok:
 	for (;;) {
 		*id = RANDOM (qid_t) % Questions;
 		
@@ -143,14 +148,49 @@ const char* QGame::GetQuestion (qid_t *id) {
 
 
 
-void QGame::SubmitAns (qid_t q, answer_t a) {
+float QGame::CalculateChance (character_t* c) {
+	qid_t denom = 0;
 	
+	for (qid_t q = 0; q != Questions; q ++) {
+		
+		if (UserAnswer [q] == U || c -> answer [q] == U) continue;
+		
+		if (UserAnswer [q] == c -> answer [q])
+			denom ++;
+		else // if conflicting answers
+			denom = ((int) denom - (Questions / 2) < 0) ? 0 : denom - (Questions / 2); // remove chance by half of questions, and make sure it doesnt go negative
+		
+	}
+	
+	return (float) denom / Questions;
+}
+
+
+
+void QGame::SubmitAns (qid_t q, answer_t a) {
+	UserAnswer [q] = a;
+	GetHighest ();
 }
 
 
 
 QGame::character_t* QGame::GuessWho (void) {
-	
+	GetHighest ();
+	return Target;
+}
+
+
+
+void QGame::GetHighest (void) {
+	float curhighest = 0;
+	for (cid_t c = 0; c != Characters; c ++) { // get highest chance character
+		float chance = CalculateChance (&Character [c]);
+		
+		if (chance > curhighest) {
+			TargetCharacter = c;
+			Target = &Character [c];
+		}
+	}
 }
 
 
@@ -171,7 +211,7 @@ err_t QGame::TrainModel (character_t* correct) {
 		if (!strcmp (Character[c].name, correct -> name)) goto has;
 	
 	// does not have
-	if (NewCharacter (correct)) return 1;
+	return NewCharacter (correct);
 	
 	has:
 	CopyCharacter (correct, c);

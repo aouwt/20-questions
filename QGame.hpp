@@ -23,6 +23,7 @@
 
 			character_t *Character; cid_t Characters = 0;
 			answer_t UserAnswer [QGAME_ANSWERLEN + 1];
+			qid_t Questions = 0;
 			
 			void Init (void);
 			void DeInit (void);
@@ -42,12 +43,14 @@
 		private:
 			cid_t CharactersAlloc = 0;
 			character_t* Target = nullptr; cid_t TargetCharacter = 0;
-			const char** Question = nullptr; qid_t Questions = 0;
+			const char** Question = nullptr;
 			
 			FILE* urand = nullptr;
 			
 			err_t NewCharacter (character_t* c);
 			void CopyCharacter (character_t* c, cid_t slot);
+			float CalculateChance (character_t* c);
+			void GetHighest (void);
 			unsigned int random (void);
 	};
 #endif
