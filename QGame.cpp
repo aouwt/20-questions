@@ -30,8 +30,8 @@ void QGame::DeInit (void) {
 
 void QGame::SetQuestions (const char* q[]) {
 	Question = q;
-	for (Questions = 0; q [Questions] [0] != '\0'; Questions ++);
-	Questions --;
+	for (Questions = 0; q [Questions] [0] != '\0'; Questions ++)
+		;
 }
 
 
@@ -77,7 +77,7 @@ err_t QGame::LoadCSV (FILE* f) {
 		for (qid_t q = 0; q != Questions; q ++) {
 			switch (ans [q]) {
 				case '\0':
-					for (; q != Questions; q ++) // fill rest with U
+					for (; q <= Questions; q ++) // fill rest with U
 						chr.answer [q] = U;
 					goto eos;
 					
@@ -149,20 +149,23 @@ const char* QGame::GetQuestion (qid_t *id) {
 
 
 float QGame::CalculateChance (character_t* c) {
-	qid_t denom = 0;
+	qid_t num = 0; qid_t denom = 0;
 	
 	for (qid_t q = 0; q != Questions; q ++) {
 		
 		if (UserAnswer [q] == U || c -> answer [q] == U) continue;
 		
+		denom ++;
+		
 		if (UserAnswer [q] == c -> answer [q])
-			denom ++;
+			num ++;
 		else // if conflicting answers
-			denom = ((int) denom - (Questions / 2) < 0) ? 0 : denom - (Questions / 2); // remove chance by half of questions, and make sure it doesnt go negative
+			num = ((int) num - (int) (Questions / 2) < 0) ? 0 : num - (Questions / 2); // remove chance by half of questions, and make sure it doesnt go negative
 		
 	}
 	
-	return (float) denom / Questions;
+	
+	return (float) num / (float) denom;
 }
 
 
@@ -189,6 +192,7 @@ void QGame::GetHighest (void) {
 		if (chance > curhighest) {
 			TargetCharacter = c;
 			Target = &Character [c];
+			curhighest = chance;
 		}
 	}
 }
@@ -214,7 +218,8 @@ err_t QGame::TrainModel (character_t* correct) {
 	return NewCharacter (correct);
 	
 	has:
-	CopyCharacter (correct, c);
+	strcpy (Character[c].name, correct -> name);
+	
 	for (qid_t q = 0; q != Questions; q ++) {
 		if (correct -> answer [q] != U) {
 			
