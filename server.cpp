@@ -15,7 +15,7 @@ char* ans = nullptr; size_t ans_len = 0;
 char* correct = nullptr;
 
 void mkhtml (void) {
-	if (qno == 19) {
+	if (qno == 20) {
 		QGame::character_t* guess = game.GuessWho ();
 		
 		printf ("<p>Are you <i>%s</i>?</p>\n", guess -> name);
@@ -50,7 +50,7 @@ void mkhtml (void) {
 
 
 int main (void) {
-	csv = fopen ("/usr/share/cgi-data/QGame/tdat.csv", "w+");
+	csv = fopen ("/usr/share/cgi-data/QGame/tdat.csv", "r+");
 	if (csv == NULL) return 1;
 	
 	query = getenv ("QUERY_STRING");
@@ -117,6 +117,7 @@ int main (void) {
 			c.answer [q] = game.UserAnswer [q];
 		
 		game.TrainModel (&c);
+		rewind (csv);
 		if (game.SaveCSV (csv)) return -2;
 	}
 	
