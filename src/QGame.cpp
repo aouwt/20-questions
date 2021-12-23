@@ -58,69 +58,6 @@ err_t QGame::NewCharacter (character_t* c) {
 
 
 
-err_t QGame::LoadCSV (FILE* f) {
-
-	for (cid_t ent = 0;; ent ++) {
-		
-		char fmt [20];
-		if (snprintf (fmt, LEN (fmt), "%%%u[^,],%%[ynu]\n", (unsigned int) (QGAME_NAMELEN + 2)/*, (unsigned int) (Questions + 2)*/) == EOF)
-			return -1;
-		
-		
-		char ans [Questions + 2];
-		character_t chr;
-		
-		if (fscanf (f, fmt, chr.name, ans) == EOF)
-			break;
-		
-		
-		for (qid_t q = 0; q != Questions; q ++) {
-			switch (ans [q]) {
-				case '\0':
-					for (; q <= Questions; q ++) // fill rest with U
-						chr.answer [q] = U;
-					goto eos;
-					
-				case 'y': chr.answer [q] = T; break;
-				case 'n': chr.answer [q] = F; break;
-				case 'u': default:
-					chr.answer [q] = U; break;
-			}
-		}
-		
-		eos:
-		
-		if (NewCharacter (&chr)) return -2;
-		
-	}
-	
-	return 0;
-}
-
-
-
-err_t QGame::SaveCSV (FILE* f) {
-	for (cid_t ent = 0; ent != Characters; ent ++) {
-		char ans [Questions + 2];
-		
-		for (qid_t q = 0; q != Questions; q ++) {
-			switch (Character [ent].answer [q]) {
-				case T: ans [q] = 'y'; break;
-				case F: ans [q] = 'n'; break;
-				case U: ans [q] = 'u'; break;
-				default: return -1;
-			}
-		}
-		
-		ans [Questions + 1] = '\0';
-		
-		if (fprintf (f, "%s,%s\n", Character [ent].name, ans) < 0) return 1;
-	}
-	
-	return 0;
-}
-
-
 const char* QGame::GetQuestion (void) {
 	qid_t q;
 	return GetQuestion (&q);

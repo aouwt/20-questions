@@ -1,13 +1,14 @@
 #include <string.h>
-#include "common.hpp"
-#include "QGame.hpp"
+#include "src/common.hpp"
+#include "src/QGame.hpp"
+#include "src/QGameSQLite.hpp"
 
 const char* Questions [] = {
 #include "questions.h"
 ,"" };
 
 
-FILE* csv;
+sqlite3 *db;
 QGame game;
 int qno = 0;
 char* query = nullptr;
@@ -50,8 +51,9 @@ void mkhtml (void) {
 
 
 int main (void) {
-	csv = fopen ("/usr/share/cgi-data/QGame/tdat.csv", "r+");
-	if (csv == NULL) return 1;
+	
+	if (sqlite3_open ("/usr/share/cgi-data/QGame/tdat.db", &db))
+		return -1;
 	
 	query = getenv ("QUERY_STRING");
 	if (query == NULL) return 4;
@@ -60,7 +62,7 @@ int main (void) {
 	game.Init ();
 	game.SetQuestions (Questions);
 
-	if (game.LoadCSV (csv)) return -1;
+	if (QGameSQL::Load (&game, db)) return -1;
 	
 	
 	switch (query [0]) {
@@ -117,12 +119,11 @@ int main (void) {
 			c.answer [q] = game.UserAnswer [q];
 		
 		game.TrainModel (&c);
-		rewind (csv);
-		if (game.SaveCSV (csv)) return -2;
+		if (QGameSQL::Save (&game, db)) return -2;
 	}
 	
 	game.DeInit ();
-	fclose (csv);
 	free (ans);
+	sqlite3_close (db);
 	if (correct != nullptr) free (correct);
 }

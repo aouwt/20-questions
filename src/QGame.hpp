@@ -29,10 +29,9 @@
 			void DeInit (void);
 			void SetQuestions (const char* q[]);
 			
-			err_t LoadCSV (FILE* f);
-			err_t SaveCSV (FILE* f);
+			err_t NewCharacter (character_t* c);
 			
-			const char* GetQuestion ();
+			const char* GetQuestion (void);
 			const char* GetQuestion (qid_t* id);
 			void SubmitAns (qid_t q, answer_t ans);
 			
@@ -47,7 +46,6 @@
 			
 			FILE* urand = nullptr;
 			
-			err_t NewCharacter (character_t* c);
 			void CopyCharacter (character_t* c, cid_t slot);
 			float CalculateChance (character_t* c);
 			void GetHighest (void);
