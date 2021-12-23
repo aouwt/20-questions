@@ -28,8 +28,21 @@ err_t QGameSQL::LoadTD (QGame* game, sqlite3* db) {
 		}
 
 		game -> NewCharacter (&ch);
+		return 0;
 	}
+
+
+
 
 	if (sqlite3_exec (db, "SELECT * FROM people;", loadchr, NULL, NULL))
 		return 1;
+	
+	return 0;
 }
+
+
+
+
+err_t QGameSQL::LoadQs (QGame* game, sqlite3* db) {
+	static int loadq (void* unused, int cols, char** feild, char** col) {
+		
