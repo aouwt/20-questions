@@ -3,11 +3,6 @@
 #include "src/QGame.hpp"
 #include "src/QGameSQLite.hpp"
 
-const char* Questions [] = {
-#include "questions.h"
-,"" };
-
-
 sqlite3 *db;
 QGame game;
 int qno = 0;
@@ -60,9 +55,8 @@ int main (void) {
 	puts ("\n");
 	
 	game.Init ();
-	game.SetQuestions (Questions);
 
-	if (QGameSQL::Load (&game, db)) return -1;
+	if (QGameSQLite::Load (&game, db)) return -1;
 	
 	
 	switch (query [0]) {
@@ -119,7 +113,7 @@ int main (void) {
 			c.answer [q] = game.UserAnswer [q];
 		
 		game.TrainModel (&c);
-		if (QGameSQL::Save (&game, db)) return -2;
+		//if (QGameSQL::Save (&game, db)) return -2;
 	}
 	
 	game.DeInit ();

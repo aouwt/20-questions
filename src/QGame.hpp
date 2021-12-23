@@ -22,12 +22,14 @@
 			} character_t;
 
 			character_t *Character; cid_t Characters = 0;
+			char** Question = nullptr; qid_t Questions = 0;
 			answer_t UserAnswer [QGAME_ANSWERLEN + 1];
-			qid_t Questions = 0;
 			
 			void Init (void);
 			void DeInit (void);
+			
 			void SetQuestions (const char* q[]);
+			err_t NewQuestion (char str []);
 			
 			err_t NewCharacter (character_t* c);
 			
@@ -40,9 +42,9 @@
 			
 		
 		private:
-			cid_t CharactersAlloc = 0;
+			size_t CharactersAlloc = 0; size_t QuestionsAlloc = 0;
+			
 			character_t* Target = nullptr; cid_t TargetCharacter = 0;
-			const char** Question = nullptr;
 			
 			FILE* urand = nullptr;
 			

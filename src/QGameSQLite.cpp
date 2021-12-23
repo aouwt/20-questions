@@ -2,47 +2,63 @@
 #include <stdlib.h>
 #include "QGameSQLite.hpp"
 
-err_t QGameSQL::LoadTD (QGame* game, sqlite3* db) {
 
-	static int loadchr (void* unused, int cols, char** feild, char** col) {
-		QGame::character_t ch;
+size_t qalloc = 0;
 
-		if (!strcmp (col [0], "name"))
-			return 1;
-		strcpy (ch.name, feild [0]);
 
-		for (int c = 1; c != cols, c ++) {
+// callbacks
+static int loadq (void* game, int cols, char** field, char** col) {
+	if (strcmp (col [0], "id"))
+		return 1;
+	
+	if (strcmp (col [1], "text"))
+		return 2;
 
-			QGame::qid_t q = atoi (col [c]);
+	return ((QGame*) game) -> NewQuestion (field [1]);
+}
 
-			if (q > game -> Questions)
-				return 2;
+static int loadchr (void* game, int cols, char** field, char** col) {
+	QGame::character_t c;
 
-			switch (feild [c] [0]) {
-				case 't': ch.answer [q] = QGame::T; break;
-				case 'f': ch.answer [q] = QGame::F; break;
-				case 'u': ch.answer [q] = QGame::U; break;
-				default: return 3;
-			}
+	if (strcmp (col [0], "name"))
+		return 1;
+	
+	if (strcmp (col [1], "answers"))
+		return 2;
+	
+	strcpy (c.name, field [0]);
 
+	for (size_t i = 0; i != ((QGame*) game) -> Questions; i ++) {
+		switch (field [1] [i]) {
+			case 't': c.answer [i] = QGame::T; break;
+			case 'f': c.answer [i] = QGame::F; break;
+			case 'u': c.answer [i] = QGame::U; break;
+			default: return 3;
 		}
-
-		game -> NewCharacter (&ch);
-		return 0;
 	}
 
+	((QGame*) game) -> NewCharacter (&c);
+	return 0;
+}
 
 
+err_t QGameSQLite::LoadTD (QGame* game, sqlite3* db) {
+	if (sqlite3_exec (db, "SELECT * FROM people;", loadchr, (void*) game, NULL))
+		return 1;
+	
+	return 0;
+}
 
-	if (sqlite3_exec (db, "SELECT * FROM people;", loadchr, NULL, NULL))
+err_t QGameSQLite::LoadQs (QGame* game, sqlite3* db) {	
+	if (sqlite3_exec (db, "SELECT * FROM questions;", loadq, (void*) game, NULL))
 		return 1;
 	
 	return 0;
 }
 
 
-
-
-err_t QGameSQL::LoadQs (QGame* game, sqlite3* db) {
-	static int loadq (void* unused, int cols, char** feild, char** col) {
-		
+err_t QGameSQLite::Load (QGame* game, sqlite3* db) {
+	if (QGameSQLite::LoadQs (game, db)) return 1;
+	if (QGameSQLite::LoadTD (game, db)) return 2;
+	return 0;
+}

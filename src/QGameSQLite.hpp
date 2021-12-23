@@ -1,7 +1,7 @@
 #ifndef QGAMESQLITE_HPP
 #define QGAMESQLITE_HPP
 	#include <sqlite3.h>
-	#include "QGame.cpp"
+	#include "QGame.hpp"
 	
 	namespace QGameSQLite {
 		err_t LoadTD (QGame* game, sqlite3* db);

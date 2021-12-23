@@ -14,6 +14,8 @@
 
 void QGame::Init (void) {
 	Character = new character_t [CharactersAlloc = 10];
+	Question = new char* [QuestionsAlloc = 20];
+	
 	Target = &Character [0];
 	urand = fopen ("/dev/urandom", "r");
 }
@@ -21,17 +23,39 @@ void QGame::Init (void) {
 
 
 void QGame::DeInit (void) {
-	delete[] Character;
+	free (Character);
+	Characters = 0;
 	CharactersAlloc = 0;
+	
+	for (qid_t q = 0; q != Questions; q ++) free (Question [q]);
+	free (Question);
+	Questions = 0;
+	QuestionsAlloc = 0;
+	
 	fclose (urand);
 }
 
 
 
-void QGame::SetQuestions (const char* q[]) {
+/*void QGame::SetQuestions (const char* q[]) {
 	Question = q;
 	for (Questions = 0; q [Questions] [0] != '\0'; Questions ++)
 		;
+}*/
+
+
+
+err_t QGame::NewQuestion (char str []) {
+	if (Questions + 1 >= QuestionsAlloc)
+		if (reallocarray (&Question, sizeof (Question [0]), (QuestionsAlloc += 10)) == NULL)
+			return 1;
+	
+	Question [Questions] = new char [strlen (str)];
+	strcpy (Question [Questions], str);
+	
+	Questions ++;
+	
+	return 0;
 }
 
 
@@ -47,8 +71,8 @@ void QGame::CopyCharacter (character_t* c, cid_t slot) {
 
 
 err_t QGame::NewCharacter (character_t* c) {
-	if (Characters+1 >= CharactersAlloc)
-		if (reallocarray (&Character, sizeof(character_t), (CharactersAlloc += 10)) == NULL)
+	if (Characters + 1 >= CharactersAlloc)
+		if (reallocarray (&Character, sizeof (Character [0]), (CharactersAlloc += 10)) == NULL)
 			return 1;
 	
 	CopyCharacter (c, Characters ++);
