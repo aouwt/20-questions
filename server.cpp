@@ -47,6 +47,9 @@ void mkhtml (void) {
 
 int main (void) {
 	
+	if (system ("dbbk /usr/share/cgi-data/QGame/tdat.db") == -1)
+		return -2;
+
 	if (sqlite3_open ("/usr/share/cgi-data/QGame/tdat.db", &db))
 		return -1;
 	
@@ -56,7 +59,7 @@ int main (void) {
 	
 	game.Init ();
 
-	if (QGameSQLite::Load (&game, db)) return -1;
+	if (QGameSQLite::Load (&game, db)) return -3;
 	
 	
 	switch (query [0]) {
@@ -117,7 +120,8 @@ int main (void) {
 			c.answer [q] = game.UserAnswer [q];
 		
 		game.TrainModel (&c);
-		return (QGameSQLite::SaveTD (&game, db));// return -2;
+		if (QGameSQLite::SaveTD (&game, db))
+			return -2;
 	}
 	
 	game.DeInit ();

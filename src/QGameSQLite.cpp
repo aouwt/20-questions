@@ -40,8 +40,8 @@ static int loadchr (void* game, int cols, char** field, char** col) {
 
 	for (size_t i = 0; i != ((QGame*) game) -> Questions; i ++) {
 		switch (field [1] [i]) {
-			case 'y': c.answer [i] = QGame::T; break;
-			case 'n': c.answer [i] = QGame::F; break;
+			case 't': c.answer [i] = QGame::T; break;
+			case 'f': c.answer [i] = QGame::F; break;
 			case 'u': c.answer [i] = QGame::U; break;
 			default: return 4;
 		}
