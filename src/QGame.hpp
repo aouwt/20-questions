@@ -21,8 +21,8 @@
 				answer_t answer [QGAME_ANSWERLEN + 1];
 			} character_t;
 
-			character_t *Character; cid_t Characters = 0;
-			char** Question = nullptr; qid_t Questions = 0;
+			character_t *Character = NULL; cid_t Characters = 0;
+			char** Question = NULL; qid_t Questions = 0;
 			answer_t UserAnswer [QGAME_ANSWERLEN + 1];
 			
 			void Init (void);
@@ -44,9 +44,9 @@
 		private:
 			size_t CharactersAlloc = 0; size_t QuestionsAlloc = 0;
 			
-			character_t* Target = nullptr; cid_t TargetCharacter = 0;
+			character_t* Target = NULL; cid_t TargetCharacter = 0;
 			
-			FILE* urand = nullptr;
+			FILE* urand = NULL;
 			
 			void CopyCharacter (character_t* c, cid_t slot);
 			float CalculateChance (character_t* c);

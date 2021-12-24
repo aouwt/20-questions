@@ -6,12 +6,12 @@
 sqlite3 *db;
 QGame game;
 int qno = 0;
-char* query = nullptr;
-char* ans = nullptr; size_t ans_len = 0;
-char* correct = nullptr;
+char* query = NULL;
+char* ans = NULL; size_t ans_len = 0;
+char* correct = NULL;
 
 void mkhtml (void) {
-	if (qno == 20) {
+	if (qno == 21) {
 		QGame::character_t* guess = game.GuessWho ();
 		
 		printf ("<p>Are you <i>%s</i>?</p>\n", guess -> name);
@@ -85,22 +85,26 @@ int main (void) {
 	
 	ans_len = strlen (ans);
 	if (ans_len > game.Questions) return 2;
-	for (; ans_len != game.Questions; ans_len ++) ans [ans_len] = 'u'; // append with unknowns
+	for (; ans_len < game.Questions;) ans [ans_len ++] = 'u'; // append with unknowns
 	
-	for (size_t i = 0; ans [i]; i ++) {
+	ans [ans_len] = '\0';
+	
+	for (size_t i = 0;/* ans [i] != '\0'*/; i ++) {
 		switch (ans [i]) {
+			case '\0': goto done;
 			case 'u': game.UserAnswer [i] = QGame::U; break;
 			case 'y': game.UserAnswer [i] = QGame::T; break;
 			case 'n': game.UserAnswer [i] = QGame::F; break;
-			default: return 3;
+			default: putchar (ans [i]); return 3;
 		}
 	}
 	
+	done:
 	
-	if (qno > 20) return 4;
+	if (qno > 21) return 4;
 	
 	
-	if (correct == nullptr) {
+	if (correct == NULL) {
 		mkhtml ();
 		
 	} else {

@@ -8,36 +8,48 @@ size_t qalloc = 0;
 
 // callbacks
 static int loadq (void* game, int cols, char** field, char** col) {
-	if (strcmp (col [0], "id"))
+
+	if (cols < 2)
 		return 1;
 	
-	if (strcmp (col [1], "text"))
+	if (strcmp (col [0], "id"))
 		return 2;
+	
+	if (strcmp (col [1], "text"))
+		return 3;
 
-	return ((QGame*) game) -> NewQuestion (field [1]);
+	if (((QGame*) game) -> NewQuestion (field [1]))
+		return 4;
+	
+	return 0;
 }
 
 static int loadchr (void* game, int cols, char** field, char** col) {
 	QGame::character_t c;
+	
+	if (cols < 2)
+		return 1;
 
 	if (strcmp (col [0], "name"))
-		return 1;
+		return 2;
 	
 	if (strcmp (col [1], "answers"))
-		return 2;
+		return 3;
 	
 	strcpy (c.name, field [0]);
 
 	for (size_t i = 0; i != ((QGame*) game) -> Questions; i ++) {
 		switch (field [1] [i]) {
-			case 't': c.answer [i] = QGame::T; break;
-			case 'f': c.answer [i] = QGame::F; break;
+			case 'y': c.answer [i] = QGame::T; break;
+			case 'n': c.answer [i] = QGame::F; break;
 			case 'u': c.answer [i] = QGame::U; break;
-			default: return 3;
+			default: return 4;
 		}
 	}
 
-	((QGame*) game) -> NewCharacter (&c);
+	if (((QGame*) game) -> NewCharacter (&c))
+		return 5;
+
 	return 0;
 }
 
