@@ -104,13 +104,6 @@ err_t QGameSQLite::SaveTD (QGame* game, sqlite3* db) {
 
 		if (sqlite3_finalize (s))
 			return 6;
-
-		/*if (snprintf (sql, LEN (sql), "INSERT INTO people VALUES (\"%s\", \"%s\");", QGame* (game) -> Character [c].name, ans) == EOF)
-			return 2;
-
-		if (sqlite3_exec (db, sql, NULL, NULL, NULL))
-			return 3;*/
-
 	}
 
 	if (sqlite3_exec (db, "COMMIT;", NULL, NULL, NULL))
