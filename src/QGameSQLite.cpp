@@ -18,7 +18,7 @@ static int loadq (void* game, int cols, char** field, char** col) {
 	if (strcmp (col [1], "text"))
 		return 3;
 
-	if (((QGame*) game) -> NewQuestion (field [1]))
+	if (QGame* (game) -> NewQuestion (field [1]))
 		return 4;
 	
 	return 0;
@@ -38,7 +38,7 @@ static int loadchr (void* game, int cols, char** field, char** col) {
 	
 	strcpy (c.name, field [0]);
 
-	for (size_t i = 0; i != ((QGame*) game) -> Questions; i ++) {
+	for (size_t i = 0; i != QGame* (game) -> Questions; i ++) {
 		switch (field [1] [i]) {
 			case 'y': c.answer [i] = QGame::T; break;
 			case 'n': c.answer [i] = QGame::F; break;
@@ -47,7 +47,7 @@ static int loadchr (void* game, int cols, char** field, char** col) {
 		}
 	}
 
-	if (((QGame*) game) -> NewCharacter (&c))
+	if (QGame* (game) -> NewCharacter (&c))
 		return 5;
 
 	return 0;
@@ -67,6 +67,44 @@ err_t QGameSQLite::LoadQs (QGame* game, sqlite3* db) {
 	
 	return 0;
 }
+
+
+err_t QGameSQLite::SaveTD (QGame* game, sqlite3* db) {
+	if (sqlite3_exec (db,
+			"BEGIN TRANSACTION;"
+			"DROP TABLE people;"
+		NULL, NULL, NULL));
+			return 1;
+
+	for (QGame::cid_t c = 0; c != QGame* (game) -> Characters; c ++) {
+
+		char ans [QGAME_MAXANSLEN + 2];
+		for (QGame::qid_t q = 0; q != QGame* (game) -> Questions; q ++) {
+			switch (QGame* (game) -> Character [c].answer [q]) {
+				case QGame::T: ans [q] = 't'; break;
+				case QGame::F: ans [q] = 'f'; break;
+				case QGame::U: ans [q] = 'u'; break;
+			}
+		}
+		ans [QGAME_MAXANSLEN + 1] = '\0';
+
+		char sql [QGAME_MAXNAMELEN + QGAME_MAXANSLEN + 30];
+
+		if (snprintf (sql, LEN (sql), "INSERT INTO people VALUES (\"%s\", \"%s\");", QGame* (game) -> Character [c].name, ans) == EOF)
+			return 2;
+
+		if (sqlite3_exec (db, sql, NULL, NULL, NULL))
+			return 3;
+
+	}
+
+	if (sqlite3_exec (db, "COMMIT;", NULL, NULL, NULL))
+		return 4;
+
+	return 0;
+}
+
+
 
 
 err_t QGameSQLite::Load (QGame* game, sqlite3* db) {
