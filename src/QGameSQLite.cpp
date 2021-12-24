@@ -18,7 +18,7 @@ static int loadq (void* game, int cols, char** field, char** col) {
 	if (strcmp (col [1], "text"))
 		return 3;
 
-	if (QGame* (game) -> NewQuestion (field [1]))
+	if (((QGame*) game) -> NewQuestion (field [1]))
 		return 4;
 	
 	return 0;
@@ -38,7 +38,7 @@ static int loadchr (void* game, int cols, char** field, char** col) {
 	
 	strcpy (c.name, field [0]);
 
-	for (size_t i = 0; i != QGame* (game) -> Questions; i ++) {
+	for (size_t i = 0; i != ((QGame*) game) -> Questions; i ++) {
 		switch (field [1] [i]) {
 			case 'y': c.answer [i] = QGame::T; break;
 			case 'n': c.answer [i] = QGame::F; break;
@@ -47,7 +47,7 @@ static int loadchr (void* game, int cols, char** field, char** col) {
 		}
 	}
 
-	if (QGame* (game) -> NewCharacter (&c))
+	if (((QGame*) game) -> NewCharacter (&c))
 		return 5;
 
 	return 0;
@@ -72,35 +72,43 @@ err_t QGameSQLite::LoadQs (QGame* game, sqlite3* db) {
 err_t QGameSQLite::SaveTD (QGame* game, sqlite3* db) {
 	if (sqlite3_exec (db,
 			"BEGIN TRANSACTION;"
-			"DROP TABLE people;"
-		NULL, NULL, NULL));
+			"DELETE FROM people;",
+		NULL, NULL, NULL))
 			return 1;
 
-	for (QGame::cid_t c = 0; c != QGame* (game) -> Characters; c ++) {
+	for (QGame::cid_t c = 0; c != ((QGame*) game) -> Characters; c ++) {
 
-		char ans [QGame* (game) -> Questions + 2];
-		for (QGame::qid_t q = 0; q != QGame* (game) -> Questions; q ++) {
-			switch (QGame* (game) -> Character [c].answer [q]) {
+		char ans [((QGame*) game) -> Questions + 2];
+		for (QGame::qid_t q = 0; q != ((QGame*) game) -> Questions; q ++) {
+			switch (((QGame*) game) -> Character [c].answer [q]) {
 				case QGame::T: ans [q] = 't'; break;
 				case QGame::F: ans [q] = 'f'; break;
 				case QGame::U: ans [q] = 'u'; break;
 			}
 		}
-		ans [QGame* (game) -> Questions + 1] = '\0';
+		ans [((QGame*) game) -> Questions + 1] = '\0';
 
 		sqlite3_stmt* s;
 
-		if (sqlite3_prepare_v2 (db, "INSERT INTO people VALUES (?, ?)", -1, &s, NULL))
+		if (sqlite3_prepare_v2 (db, "INSERT INTO people (name, answers) VALUES(?, ?);", -1, &s, NULL))
 			return 2;
 
-		if (sqlite3_bind_text (s, 1, QGame* (game) -> Character[c].name, -1, SQLITE_STATIC))
+		if (sqlite3_bind_text (s, 1, ((QGame*) game) -> Character[c].name, -1, SQLITE_STATIC))
 			return 3;
 
 		if (sqlite3_bind_text (s, 2, ans, -1, SQLITE_STATIC))
 			return 4;
 
-		if (sqlite3_step (s))
-			return 5;
+		{
+			int res;
+loop: // yes i know this can be a loop but i dont wanna make it one, okay
+			res = sqlite3_step (s);
+			switch (res) {
+				case SQLITE_ROW: goto loop;
+				case SQLITE_DONE: break;
+				default: return 5;
+			}
+		}
 
 		if (sqlite3_finalize (s))
 			return 6;

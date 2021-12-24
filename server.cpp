@@ -117,7 +117,7 @@ int main (void) {
 			c.answer [q] = game.UserAnswer [q];
 		
 		game.TrainModel (&c);
-		//if (QGameSQL::Save (&game, db)) return -2;
+		return (QGameSQLite::SaveTD (&game, db));// return -2;
 	}
 	
 	game.DeInit ();
