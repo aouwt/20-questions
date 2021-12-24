@@ -78,7 +78,7 @@ err_t QGameSQLite::SaveTD (QGame* game, sqlite3* db) {
 
 	for (QGame::cid_t c = 0; c != QGame* (game) -> Characters; c ++) {
 
-		char ans [QGAME_MAXANSLEN + 2];
+		char ans [QGame* (game) -> Questions + 2];
 		for (QGame::qid_t q = 0; q != QGame* (game) -> Questions; q ++) {
 			switch (QGame* (game) -> Character [c].answer [q]) {
 				case QGame::T: ans [q] = 't'; break;
@@ -86,20 +86,35 @@ err_t QGameSQLite::SaveTD (QGame* game, sqlite3* db) {
 				case QGame::U: ans [q] = 'u'; break;
 			}
 		}
-		ans [QGAME_MAXANSLEN + 1] = '\0';
+		ans [QGame* (game) -> Questions + 1] = '\0';
 
-		char sql [QGAME_MAXNAMELEN + QGAME_MAXANSLEN + 30];
+		sqlite3_stmt* s;
 
-		if (snprintf (sql, LEN (sql), "INSERT INTO people VALUES (\"%s\", \"%s\");", QGame* (game) -> Character [c].name, ans) == EOF)
+		if (sqlite3_prepare_v2 (db, "INSERT INTO people VALUES (?, ?)", -1, &s, NULL))
+			return 2;
+
+		if (sqlite3_bind_text (s, 1, QGame* (game) -> Character[c].name, -1, SQLITE_STATIC))
+			return 3;
+
+		if (sqlite3_bind_text (s, 2, ans, -1, SQLITE_STATIC))
+			return 4;
+
+		if (sqlite3_step (s))
+			return 5;
+
+		if (sqlite3_finalize (s))
+			return 6;
+
+		/*if (snprintf (sql, LEN (sql), "INSERT INTO people VALUES (\"%s\", \"%s\");", QGame* (game) -> Character [c].name, ans) == EOF)
 			return 2;
 
 		if (sqlite3_exec (db, sql, NULL, NULL, NULL))
-			return 3;
+			return 3;*/
 
 	}
 
 	if (sqlite3_exec (db, "COMMIT;", NULL, NULL, NULL))
-		return 4;
+		return 6;
 
 	return 0;
 }
