@@ -55,30 +55,38 @@
 	
 	
 	
-	
 	foreach ($character as $ci => $c) {
 		$d = 0; $n = 0.0;
 		foreach ($c as $i => $q) {
-			if ($userans [$i] !== 0) {
+			if ($userans [$i] != 0) {
 				$n += $q * $userans [$i];
 				$d ++;
 			}
 		}
-		
-		$chance [$ci] = $n / $d;
+		if ($d != 0) { $chance [$ci] = $n / $d; }
+		else { $chance [$ci] = 0; }
 	}
 	unset ($ci, $c, $d, $n, $i, $q);
 	
 	
 	
-	$max = 0.0;
+	$max = -10.0;
 	foreach ($chance as $i => $c) {
-		if ($c > $max) {
+		if ($c >= $max) {
 			$max = $c;
 			$target_character = $i;
 		}
 	}
 	unset ($i, $c, $max);
+	
+	
+	$q = 0;
+	while (true) {
+		while ($userans [$q = rand (1, $question_total)] != 0);
+		if ($character [$target_character] [$q] == 0) { break; }
+	}
+	$question_text = $q;
+	unset ($q);
 ?>
 <!DOCTYPE html>
 <html>
