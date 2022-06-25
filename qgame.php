@@ -1,10 +1,29 @@
 <?php
-	function cset () {
+	
+	function rset () {
 		global $question_total;
-		setcookie ('game', str_repeat ('q', $question_total));
-		echo '<meta http-equiv="refresh" content="0;url=?" />';
-		echo '<p>Please note that this game uses cookies. Please enable cookies to play this game. Thanks!</p>';
-		exit (0);
+		echo '<meta http-equiv="refresh" content="0;url=?cookie=' . str_repeat ('q', $question_total) . '" />';
+		exit ();
+	}
+	function strtoans ($i) {
+		switch ($i) {
+			case 't': return 1;
+			break;
+			case 'f': return -1;
+			break;
+			case 'q': return 0;
+			break;
+		}
+	}
+	function anstostr ($i) {
+		switch ($i) {
+			case 1: return 't';
+			break;
+			case -1: return 'f';
+			break;
+			case 0: return 'q';
+			break;
+		}
 	}
 	
 	$db = new SQLite3 ('/usr/share/cgi-data/QGame/php.db');
@@ -26,51 +45,30 @@
 	# parse arguments (1)
 	if (isset ($_GET ['do'])) {
 		switch ($_GET ['do']) {
-			case 'restart': cset ();
+			case 'restart': rset ();
 			break;
 		}
 	}
 	
 	# check for cookies
-	if (! isset ($_COOKIE ['game'])) { cset (); }
-	elseif ($_COOKIE ['game'] === "") { cset (); }
+	if (! isset ($_GET ['cookie'])) { rset (); }
+	elseif ($_GET ['cookie'] === "") { rset (); }
+	
+	$cookie = $_GET ['cookie'];
 
 
 	# get user answers
-	$s = str_split ($_COOKIE ['game']);
+	$s = str_split ($cookie);
 	$userans = array ();
-	foreach ($s as $i => $c) {
-		switch ($c) {
-			case 't': $userans [$i + 1] = 1;
-			break;
-			case 'f': $userans [$i + 1] = -1;
-			break;
-			case 'q': $userans [$i + 1] = 0;
-			break;
-		}
-	}
+	foreach ($s as $i => $c) { $userans [$i + 1] = strtoans ($c); }
 	unset ($s, $i, $c);
-	
-	
-	# parse arguments (2)
-	if (isset ($_GET ['ans']) and isset ($_GET ['qid'])) {
-		switch ($_GET ['ans']) {
-			case 't': $userans [$_GET ['qid']] = 1;
-			break;
-			case 'f': $userans [$_GET ['qid']] = -1;
-			break;
-			case 'q': $userans [$_GET ['qid']] = 0;
-			break;
-		}
-	}
-	
 	
 	# check answers
 	$userans_ = array_count_values ($userans);
 	if (! isset ($userans_ [0])) { $userans_ [0] = 0; }
 	if (! isset ($userans_ [1])) { $userans_ [1] = 0; }
 	if (! isset ($userans_ [-1])) { $userans_ [-1] = 0; }
-	if ($userans_ [0] == 0) { cset (); } # ran out of questions to ask? retry (this shouldn't happen though)
+	if ($userans_ [0] == 0) { rset (); } # ran out of questions to ask? retry (this shouldn't happen though)
 	
 	
 	# load characters
@@ -137,21 +135,31 @@
 	unset ($q);
 	
 	
-	# update cookie
+	$cookie_f = $cookie_t = $cookie;
+	
+	$cookie_t [$question_id - 1] = 't';
+	$cookie_f [$question_id - 1] = 'f';
+	
+	
+restofdoc:
+	#update cookie
 	$a = array ();
 	foreach ($userans as $i => $c) {
-		switch ($c) {
-			case 0: $a [$i] = 'q';
-			break;
-			case 1: $a [$i] = 't';
-			break;
-			case -1: $a [$i] = 'f';
-			break;
-		}
+		$a [$i] = anstostr ($c);
 	}
-	setcookie ('game', implode ($a));
+	$cookie = implode ($a);
 	unset ($a, $i, $c);
-restofdoc:
+	
+	
+	if (! isset ($_GET ['key'])) {
+		$key = bin2hex (random_bytes (16));
+		$time = (string) (time () + (60 * 60 * 24));
+		$db -> exec ("INSERT INTO keys (value, expiry) VALUES ('$key', $time);");
+		unset ($time);
+	} else {
+		$key = htmlspecialchars ($_GET ['key']);
+	}
+	
 ?>
 <!DOCTYPE html>
 <html>
@@ -170,14 +178,14 @@ restofdoc:
 			<?php
 				if ($redir) {
 					echo
-						'<a href="end.php?ans=t&cookie=' . $_COOKIE ['game'] . '">Yes</a> ' .
-						'<a href="end.php?ans=f&cookie=' . $_COOKIE ['game'] . '">No</a>'
+						"<a href=\"end.php?ans=t&cookie=$cookie&key=$key\">Yes</a> " .
+						"<a href=\"end.php?ans=f&cookie=$cookie&key=$key\">No</a>"
 					;
 				} else {
 					echo
-						"<a href=\"?ans=t&qid=$question_id\">True</a> " .
-						"<a href=\"?ans=f&qid=$question_id\">False</a> " .
-						"<a href=\"?ans=q&qid=$question_id\">Skip</a>"
+						"<a href=\"?cookie=$cookie_t&key=$key\">True</a> " .
+						"<a href=\"?cookie=$cookie_f&key=$key\">False</a> " .
+						"<a href=\"?cookie=$cookie&key=$key\">Skip</a>"
 					;
 				}
 			?>
