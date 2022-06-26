@@ -24,10 +24,11 @@
 	
 	$db = new SQLite3 ('./php.db');
 	
-	
+	# var_dump ($_POST);
 	
 	
 	if ($_SERVER ['REQUEST_METHOD'] === 'POST') {
+		# exit ();
 		# check for required params
 		if (
 			(! isset ($_POST ['key'])) or
@@ -127,22 +128,25 @@
 			<input type="hidden" name="key" value="<?php echo htmlspecialchars ($_GET ['key']); ?>" />
 			<fieldset>
 				<label for="who">I was: </label>
-				<input type="text" name="who" id="who" autocomplete="off" list="characters"
-					<?php if ($_GET ['ans'] === 't') {
-						echo 'disabled=true value="' . htmlspecialchars ($_GET ['target']) . '"';
-					} ?>
-				/>
+				<?php
+					if ($_GET ['ans'] === 't') {
+						echo '<input type="hidden" name="who" value="' . htmlspecialchars ($_GET ['target']) . '" />';
+						echo '<input type="text" id="who" disabled=true value="' . htmlspecialchars ($_GET ['target']) . '" />';
+					} else {
+						echo '<input type="text" id="who" name="who" list="characters" />';
+					}
+				?>
 			</fieldset>
 			<br />
 
 			<fieldset>
-				<label for="extraq">Add a question! </label>
-				<input type="text" name="extraq" id="q" autocomplete="off" list="questions" />
+				<label for="q">Add a question! </label>
+				<input type="text" name="q" id="q" autocomplete="off" list="questions" />
 
 				<br />
 
-				<label for="extraq_ans">My character would've answered: </label>
-				<select name="extraq_ans" id="q_ans">
+				<label for="q_ans">My character would've answered: </label>
+				<select name="q_ans" id="q_ans">
 					<option>Skip</option>
 					<option value="t">True</option>
 					<option value="f">False</option>
