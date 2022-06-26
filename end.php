@@ -91,16 +91,16 @@
 		} }
 		
 		$s = '';
-		foreach ($_POST ['cookie'] as $n => $a) {
+		$ar = str_split ($_POST ['cookie']);
+		foreach ($ar as $n => $a) {
 			# average out
 			$i = $n + 1;
 			$chr ["q_$n"] = $b = (($chr ["q_$n"] * 9) + strtoans ($a)) / 10;
 			$s .= "q_$n = $b, ";
 		}
-		unset ($n, $a, $i, $b);
-
 		$db -> exec ("UPDATE characters SET $s WHERE name = '" . $chr ['name'] . '\';');
-		
+		unset ($ar, $n, $a, $i, $b, $s);
+
 		echo '<h1>Thank you!</h1>';
 		exit ();
 	} else {
