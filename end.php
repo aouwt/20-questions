@@ -22,7 +22,7 @@
 	}
 	
 	
-	$db = new SQLite3 ('/usr/share/cgi-data/QGame/php.db');
+	$db = new SQLite3 ('./php.db');
 	
 	
 	
@@ -32,17 +32,12 @@
 		if (
 			(! isset ($_POST ['key'])) or
 			(! isset ($_POST ['ans'])) or
-			(! isset ($_POST ['cookie']))
+			(! isset ($_POST ['cookie'])) or
+			(! isset ($_POST ['who']))
 		) {
 			http_response_code (400);
 			exit ('<p><strong>Error:</strong> missing one or more required parameters</p>');
 		}
-		
-		
-		if ($_POST ['ans'] === 't' and isset ($_POST ['who'])) { if ($_POST ['who'] !== '') {
-			http_response_code (400);
-			exit ('<p><strong>Error:</strong> conflicting parameters "who" and "ans"</p>');
-		} }
 		
 		#delete old keys
 		$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
@@ -54,43 +49,56 @@
 			http_response_code (403);
 			exit ('<p><strong>Error:</strong> invalid key</p>');
 		}
-		
+
 		$db -> exec ('DELETE FROM keys WHERE value = \'' . $_POST ['key'] . '\';');
-		
-		if (isset ($_POST ['who'])) { if ($_POST ['who'] !== '') {
-			$_POST ['who'] = htmlspecialchars ($_POST ['who']);
-			
+
+		# chr variable
+		$_POST ['who'] = htmlspecialchars ($_POST ['who']);
+
+		$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
+
+		if ($chr === null) {
+			$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
 			$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
-			
-			if ($chr === null) {
-				$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
-				$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
-			}
-		} }
+		}
 		
 		
 		
 		
 		if (isset ($_POST ['q'])) { if ($_POST ['q'] !== '') {
-			#check if extant
+			# check if extant
 			$question_id = $db -> querySingle ('SELECT id FROM questions WHERE text = \'' . htmlspecialchars (strtolower ($_POST ['q'])) . '\';');
 			
 			
 			$_POST ['q'] = htmlspecialchars ($_POST ['q']);
 			
 			
-			if ($question_id === null) {		
+			if ($question_id === null) {
 				#insert question
 				$db -> exec ('INSERT INTO questions (text) VALUES (\'' . $_POST ['q'] . '\');');
 				$question_id = $db -> querySingle ('SELECT id FROM questions WHERE text = \'' . $_POST ['q'] . '\';');
+				$db -> exec ("ALTER TABLE characters ADD q_$question_id;");
 			}
-			
-			
+
+
 			if (isset ($_POST ['q_ans'])) { if ($_POST ['q_ans'] !== '') {
 				$_POST ['cookie'] [$question_id - 1] = $_POST ['q_ans'];
 			} }
+
+
+			
 		} }
 		
+		$s = '';
+		foreach ($_POST ['cookie'] as $n => $a) {
+			# average out
+			$i = $n + 1;
+			$chr ["q_$n"] = $b = (($chr ["q_$n"] * 9) + strtoans ($a)) / 10;
+			$s .= "q_$n = $b, ";
+		}
+		unset ($n, $a, $i, $b);
+
+		$db -> exec ("UPDATE characters SET $s WHERE name = '" . $chr ['name'] . '\';');
 		
 		echo '<h1>Thank you!</h1>';
 		exit ();
@@ -119,7 +127,7 @@
 			<input type="hidden" name="key" value="<?php echo htmlspecialchars ($_GET ['key']); ?>" />
 			<fieldset>
 				<label for="who">I was: </label>
-				<input type="text" name="who" id="corr" autocomplete="off" list="characters"
+				<input type="text" name="who" id="who" autocomplete="off" list="characters"
 					<?php if ($_GET ['ans'] === 't') {
 						echo 'disabled=true value="' . htmlspecialchars ($_GET ['target']) . '"';
 					} ?>

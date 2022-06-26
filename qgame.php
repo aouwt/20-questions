@@ -26,7 +26,7 @@
 		}
 	}
 	
-	$db = new SQLite3 ('/usr/share/cgi-data/QGame/php.db');
+	$db = new SQLite3 ('./php.db');
 	
 	
 	# load questions
