@@ -33,25 +33,45 @@
 			(! isset ($_POST ['key'])) or
 			(! isset ($_POST ['ans'])) or
 			(! isset ($_POST ['cookie']))
-		) { http_response_code (400); exit (); }
+		) {
+			http_response_code (400);
+			exit ('<p><strong>Error:</strong> missing one or more required parameters</p>');
+		}
 		
+		
+		if ($_POST ['ans'] === 't' and isset ($_POST ['who'])) { if ($_POST ['who'] !== '') {
+			http_response_code (400);
+			exit ('<p><strong>Error:</strong> conflicting parameters "who" and "ans"</p>');
+		} }
 		
 		#delete old keys
 		$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
 		
+		$_POST ['key'] = htmlspecialchars ($_POST ['key']);
+		
 		#check if key exists
-		if ($db -> querySingle ('SELECT * FROM keys WHERE value = \'' . htmlspecialchars ($_POST ['key']) . '\';') === null) { http_response_code (403); exit (); }
+		if ($db -> querySingle ('SELECT * FROM keys WHERE value = \'' . $_POST ['key'] . '\';') === null) {
+			http_response_code (403);
+			exit ('<p><strong>Error:</strong> invalid key</p>');
+		}
 		
 		$db -> exec ('DELETE FROM keys WHERE value = \'' . $_POST ['key'] . '\';');
 		
-		if (isset ($_POST ['who'])) {
+		if (isset ($_POST ['who'])) { if ($_POST ['who'] !== '') {
+			$_POST ['who'] = htmlspecialchars ($_POST ['who']);
 			
-		}
+			$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
+			
+			if ($chr === null) {
+				$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
+				$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
+			}
+		} }
 		
 		
 		
 		
-		if (isset ($_POST ['q'])) {
+		if (isset ($_POST ['q'])) { if ($_POST ['q'] !== '') {
 			#check if extant
 			$question_id = $db -> querySingle ('SELECT id FROM questions WHERE text = \'' . htmlspecialchars (strtolower ($_POST ['q'])) . '\';');
 			
@@ -66,10 +86,10 @@
 			}
 			
 			
-			if (isset ($_POST ['q_ans'])) {
+			if (isset ($_POST ['q_ans'])) { if ($_POST ['q_ans'] !== '') {
 				$_POST ['cookie'] [$question_id - 1] = $_POST ['q_ans'];
-			}
-		}
+			} }
+		} }
 		
 		
 		echo '<h1>Thank you!</h1>';
@@ -79,8 +99,12 @@
 		if (
 			(! isset ($_GET ['key'])) or
 			(! isset ($_GET ['ans'])) or
-			(! isset ($_GET ['cookie']))
-		) { http_response_code (400); exit (); }
+			(! isset ($_GET ['cookie'])) or
+			(! isset ($_GET ['target']))
+		) {
+			http_response_code (400);
+			exit ('<p><strong>Error:</strong> missing one or more required parameters</p>');
+		}
 	}
 ?>
 
@@ -95,7 +119,11 @@
 			<input type="hidden" name="key" value="<?php echo htmlspecialchars ($_GET ['key']); ?>" />
 			<fieldset>
 				<label for="who">I was: </label>
-				<input type="text" name="who" id="corr" autocomplete="off" list="characters" />
+				<input type="text" name="who" id="corr" autocomplete="off" list="characters"
+					<?php if ($_GET ['ans'] === 't') {
+						echo 'disabled=true value="' . htmlspecialchars ($_GET ['target']) . '"';
+					} ?>
+				/>
 			</fieldset>
 			<br />
 

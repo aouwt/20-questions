@@ -178,8 +178,8 @@ restofdoc:
 			<?php
 				if ($redir) {
 					echo
-						"<a href=\"end.php?ans=t&cookie=$cookie&key=$key\">Yes</a> " .
-						"<a href=\"end.php?ans=f&cookie=$cookie&key=$key\">No</a>"
+						"<a href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a> " .
+						"<a href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>"
 					;
 				} else {
 					echo
