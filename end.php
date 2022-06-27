@@ -56,11 +56,11 @@
 		# chr variable
 		$_POST ['who'] = htmlspecialchars ($_POST ['who']);
 
-		$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
+		$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';', true);
 
 		if ($chr === null) {
 			$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
-			$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';');
+			$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';', true);
 		}
 		
 		
@@ -90,14 +90,18 @@
 			
 		} }
 		
-		$s = '';
+		$s = array ();
 		$ar = str_split ($_POST ['cookie']);
+		# var_dump ($chr);
 		foreach ($ar as $n => $a) {
 			# average out
 			$i = $n + 1;
-			$chr ["q_$n"] = $b = (($chr ["q_$n"] * 9) + strtoans ($a)) / 10;
-			$s .= "q_$n = $b, ";
+			if ($a !== 'q') {
+				$chr ["q_$i"] = (($chr ["q_$i"] * 9.0) + strtoans ($a)) / 10.0;
+			}
+			$s [$n] = "q_$i = " . $chr ["q_$i"];
 		}
+		$s = implode (', ', $s);
 		$db -> exec ("UPDATE characters SET $s WHERE name = '" . $chr ['name'] . '\';');
 		unset ($ar, $n, $a, $i, $b, $s);
 
