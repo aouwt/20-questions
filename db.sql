@@ -15,16 +15,17 @@ insert into questions values (10, 'Are you an adult?');
 insert into questions values (11, 'Have you ever had a pet?');
 insert into questions values (12, 'Do you use Windows primarily?');
 insert into questions values (13, 'Is English your primary language?');
-insert into questions values (14, '');
-insert into questions values (15, '');
-insert into questions values (16, '');
-insert into questions values (17, '');
-insert into questions values (18, '');
-insert into questions values (19, '');
-insert into questions values (20, '');
+insert into questions values (14, 'Do you play any sport?');
+insert into questions values (15, 'Do you use exclusively binary (he/him or she/her) pronouns?');
+insert into questions values (16, 'Do you use neopronouns?');
+insert into questions values (17, 'Would you consider yourself extraordinarily weird? (If you consider yourself moderately weird, choose &quot;false&quot;)');
+insert into questions values (18, 'Have you ever been in a relationship?');
+insert into questions values (19, 'Do you say &quot;favourite&quot; (true) or &quot;favorite&quot; (false)?');
+insert into questions values (20, 'This is just filler. Please choose true.');
+insert into questions values (21, 'This is just filler. Please choose false.');
 
-create table characters (name, q_1, q_2, q_3, q_4, q_5, q_6, q_7, q_8, q_9, q_10, q_11, q_12, q_13, q_14, q_15, q_16, q_17, q_18, q_19, q_20);
-insert into characters values ('kit', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+create table characters (name, q_1, q_2, q_3, q_4, q_5, q_6, q_7, q_8, q_9, q_10, q_11, q_12, q_13, q_14, q_15, q_16, q_17, q_18, q_19, q_20, q_21);
+insert into characters values ('kit', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 create table keys (value, expiry);
 
