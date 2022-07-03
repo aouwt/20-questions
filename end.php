@@ -60,7 +60,7 @@
 
 		$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';', true);
 
-		if ($chr === null) {
+		if ($chr === array ()) {
 			$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
 			$chr = array ();
 		}
