@@ -9,7 +9,7 @@
 			default: http_response_code (400); exit ();
 		}
 		header ('Content-Type: application/json');
-		echo shell_exec ("sqlite3 -json -readonly -safe '$DB_PATH' 'SELECT * FROM $what;'");
+		echo shell_exec ("sqlite3 -json -readonly '$DB_PATH' 'SELECT * FROM $what;'");
 		exit ();
 	}
 	
@@ -125,6 +125,7 @@
 			$target_character = $i;
 		}
 	}
+	$confidence = $max + 1;
 	unset ($i, $c, $max);
 	
 	# check if end of game
@@ -186,10 +187,19 @@ restofdoc:
 		<p>
 			<small><a href="?do=restart">Restart game</a></small>
 		</p>
+		<progress max=20 value=<?php echo $question_no; ?>><?php echo $question_no; ?></progress>
 		<p>
 			Question #<?php echo $question_no; ?>:
 			<strong><?php echo $question_text; ?></strong>
 		</p>
+		<?php
+			if ($redir) {
+				echo
+					"<label for=\"confidence\">Confidence: </label>" .
+					"<meter id=\"confidence\" min=0 max=2 low=1 high=1.5 optimum=2 value=$confidence>$confidence</meter>"
+				;
+			}
+		?>
 		<br />
 		<p>
 			<?php

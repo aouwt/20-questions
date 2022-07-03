@@ -55,7 +55,7 @@ int main (void) {
 	
 	query = getenv ("QUERY_STRING");
 	if (query == NULL) return 4;
-	puts ("\n");
+	puts ("Content-type: text/html\n");
 	
 	game.Init ();
 
@@ -111,7 +111,7 @@ int main (void) {
 		mkhtml ();
 		
 	} else {
-		puts ("Answer submitted.");
+		puts ("<p>Answer submitted.</p>");
 		QGame::character_t c;
 		
 		// copy
