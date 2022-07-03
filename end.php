@@ -25,7 +25,7 @@
 	$db = new SQLite3 ('./php.db');
 	
 	# var_dump ($_POST);
-	
+	$db -> exec ('BEGIN TRANSACTION;');
 	
 	if ($_SERVER ['REQUEST_METHOD'] === 'POST') {
 		# exit ();
@@ -104,6 +104,12 @@
 		$s = implode (', ', $s);
 		$db -> exec ("UPDATE characters SET $s WHERE name = '" . $chr ['name'] . '\';');
 		unset ($ar, $n, $a, $i, $b, $s);
+		
+		
+		$db -> exec ('UPDATE verinfo SET value = ' . time () . ' WHERE key = \'last_update\';');
+		
+		
+		$db -> exec ('COMMIT;');
 
 		echo '<h1>Thank you!</h1>';
 		exit ();

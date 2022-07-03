@@ -1,4 +1,17 @@
 <?php
+	$DB_PATH = './php.db';
+	
+	if (isset ($_GET ['dump'])) {
+		switch ($_GET ['dump']) {
+			case 'v': $what = 'verinfo'; break;
+			case 'c': $what = 'characters'; break;
+			case 'q': $what = 'questions'; break;
+			default: http_response_code (400); exit ();
+		}
+		header ('Content-Type: application/json');
+		echo shell_exec ("sqlite3 -json -readonly -safe '$DB_PATH' 'SELECT * FROM $what;'");
+		exit ();
+	}
 	
 	function rset () {
 		global $question_total;
@@ -26,8 +39,9 @@
 		}
 	}
 	
-	$db = new SQLite3 ('./php.db');
+	$db = new SQLite3 ($DB_PATH);
 	
+	$db -> exec ('BEGIN TRANSACTION;');
 	
 	# load questions
 	$r = $db -> query ('SELECT id, text FROM questions;');
@@ -159,6 +173,9 @@ restofdoc:
 	} else {
 		$key = htmlspecialchars ($_GET ['key']);
 	}
+	
+	
+	$db -> exec ('COMMIT;');
 	
 ?>
 <!DOCTYPE html>
