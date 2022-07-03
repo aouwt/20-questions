@@ -97,6 +97,7 @@
 		foreach ($ar as $n => $a) {
 			# average out
 			$i = $n + 1;
+			if (! isset ($chr ["q_$i"])) { $chr ["q_$i"] = 0; }
 			if ($a !== 'q') {
 				$chr ["q_$i"] = (($chr ["q_$i"] * 9.0) + strtoans ($a)) / 10.0;
 			}
