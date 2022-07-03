@@ -1,5 +1,5 @@
 <?php
-	$DB_PATH = '/home/kit/git/20-ques
+	$DB_PATH = '/home/kit/git/20-questions/php.db';
 	function strtoans ($i) {
 		switch ($i) {
 			case 't': return 1;
