@@ -1,5 +1,5 @@
 <?php
-	$DB_PATH = './php.db';
+	$DB_PATH = '/home/kit/git/20-questions/php.db';
 	
 	if (isset ($_GET ['dump'])) {
 		switch ($_GET ['dump']) {
