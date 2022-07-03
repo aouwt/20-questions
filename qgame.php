@@ -39,7 +39,7 @@
 		}
 	}
 	
-	$db = new SQLite3 ($DB_PATH);
+	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	$db -> exec ('BEGIN TRANSACTION;');
 	

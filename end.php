@@ -23,7 +23,7 @@
 	}
 	
 	
-	$db = new SQLite3 ($DB_PATH);
+	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	# var_dump ($_POST);
 	$db -> exec ('BEGIN TRANSACTION;');
