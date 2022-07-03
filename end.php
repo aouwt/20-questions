@@ -93,6 +93,7 @@
 		
 		$s = array ();
 		$ar = str_split ($_POST ['cookie']);
+		if (! isset ($chr ['name'])) { $chr ['name'] = $_POST ['who']; }
 		# var_dump ($chr);
 		foreach ($ar as $n => $a) {
 			# average out
