@@ -26,6 +26,7 @@
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	# var_dump ($_POST);
+	$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
 	$db -> exec ('BEGIN TRANSACTION;');
 	
 	if ($_SERVER ['REQUEST_METHOD'] === 'POST') {
@@ -61,7 +62,7 @@
 
 		if ($chr === null) {
 			$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
-			$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';', true);
+			$chr = array ();
 		}
 		
 		
