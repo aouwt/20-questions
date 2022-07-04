@@ -1,5 +1,6 @@
 <?php
-	$DB_PATH = '/home/kit/git/20-questions/php.db';
+	require 'cfg.php';
+
 	function strtoans ($i) {
 		switch ($i) {
 			case 't': return 1;
@@ -133,6 +134,9 @@
 
 <!DOCTYPE html>
 <html>
+	<head>
+		<link rel="stylesheet" href="main.css" />
+	</head>
 	<body>
 		<p>Leave any field blank to omit answer from collection process. The information supplied here will be used to further train the AI. Do not put any personal information in here. This information will not be sold to advertisers. (who tf would buy it?)</p>
 		<p>None of these fields are required, but input is recommended to improve the game.</p>
@@ -169,7 +173,7 @@
 
 			<br />
 
-			<input type="submit" value="Help train the AI!">
+			<input class="btn" style="background-color: blue;" type="submit" value="Help train the AI!">
 			
 			
 			

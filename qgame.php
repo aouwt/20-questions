@@ -1,6 +1,5 @@
 <?php
-	$DB_PATH = '/home/kit/git/20-questions/php.db';
-	
+	require 'cfg.php';
 	if (isset ($_GET ['dump'])) {
 		switch ($_GET ['dump']) {
 			case 'v': $what = 'verinfo'; break;
@@ -182,6 +181,7 @@ restofdoc:
 <!DOCTYPE html>
 <html>
 	<head>
+		<link rel="stylesheet" href="main.css" />
 	</head>
 	<body>
 		<p>
@@ -205,14 +205,14 @@ restofdoc:
 			<?php
 				if ($redir) {
 					echo "
-						<a href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
-						<a href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
+						<a class=\"btn\" style=\"background-color: green;\" href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
+						<a class=\"btn\" style=\"background-color: red;\" href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
 					";
 				} else {
 					echo "
-						<a href=\"?cookie=$cookie_t&key=$key\">True</a>
-						<a href=\"?cookie=$cookie_f&key=$key\">False</a>
-						<a href=\"?cookie=$cookie&key=$key\">Skip</a>
+						<a class=\"btn\" style=\"background-color: green;\" href=\"?cookie=$cookie_t&key=$key\">True</a>
+						<a class=\"btn\" style=\"background-color: red;\" href=\"?cookie=$cookie_f&key=$key\">False</a>
+						<a class=\"btn\" style=\"background-color: blue;\"href=\"?cookie=$cookie&key=$key\">Skip</a>
 					";
 				}
 			?>
