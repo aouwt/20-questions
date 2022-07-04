@@ -1,0 +1,20 @@
+html {
+	font-family: monospace;
+	text-align: center;
+}
+
+.btn {
+	border: 0.1em outset;
+	padding: 0.5em;
+	color: white;
+	text-shadow: 0.1em 0.1em black;
+	text-decoration: initial;
+}
+
+input, progress, meter {
+	border: 0.1em outset;
+}
+
+label {
+	font-weight: bold;
+}
