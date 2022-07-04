@@ -194,26 +194,26 @@ restofdoc:
 		</p>
 		<?php
 			if ($redir) {
-				echo
-					"<label for=\"confidence\">Confidence: </label>" .
-					"<meter id=\"confidence\" min=0 max=2 low=1 high=1.5 optimum=2 value=$confidence>$confidence</meter>"
-				;
+				echo "
+					<label for=\"confidence\">Confidence: </label>
+					<meter id=\"confidence\" min=0 max=2 low=1 high=1.5 optimum=2 value=$confidence>$confidence</meter>
+				";
 			}
 		?>
 		<br />
 		<p>
 			<?php
 				if ($redir) {
-					echo
-						"<a href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a> " .
-						"<a href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>"
-					;
+					echo "
+						<a href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
+						<a href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
+					";
 				} else {
-					echo
-						"<a href=\"?cookie=$cookie_t&key=$key\">True</a> " .
-						"<a href=\"?cookie=$cookie_f&key=$key\">False</a> " .
-						"<a href=\"?cookie=$cookie&key=$key\">Skip</a>"
-					;
+					echo "
+						<a href=\"?cookie=$cookie_t&key=$key\">True</a>
+						<a href=\"?cookie=$cookie_f&key=$key\">False</a>
+						<a href=\"?cookie=$cookie&key=$key\">Skip</a>
+					";
 				}
 			?>
 		</p>
