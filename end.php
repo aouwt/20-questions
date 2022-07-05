@@ -136,75 +136,79 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1"> 
-		<link rel="stylesheet" href="main.css" />
+		<style>
+			<?php include_once $CSS_PATH; ?>
+		</style>
 	</head>
 	<body>
-		<p>Leave any field blank to omit answer from collection process. The information supplied here will be used to further train the AI. Do not put any personal information in here. This information will not be sold to advertisers. (who tf would buy it?)</p>
-		<p>None of these fields are required, but input is recommended to improve the game.</p>
-		<form action="?" method="post">
-			<input type="hidden" name="ans" value="<?php echo htmlspecialchars ($_GET ['ans']); ?>" />
-			<input type="hidden" name="cookie" value="<?php echo htmlspecialchars ($_GET ['cookie']); ?>" />
-			<input type="hidden" name="key" value="<?php echo htmlspecialchars ($_GET ['key']); ?>" />
-			<fieldset>
-				<label for="who">I was: </label>
-				<?php
-					if ($_GET ['ans'] === 't') {
-						echo '<input type="hidden" name="who" value="' . htmlspecialchars ($_GET ['target']) . '" />';
-						echo '<input type="text" id="who" disabled=true value="' . htmlspecialchars ($_GET ['target']) . '" />';
-					} else {
-						echo '<input type="text" id="who" name="who" list="characters" />';
-					}
-				?>
-			</fieldset>
-			<br />
+		<div class="main">
+			<p>Leave any field blank to omit answer from collection process. The information supplied here will be used to further train the AI. Do not put any personal information in here. This information will not be sold to advertisers. (who tf would buy it?)</p>
+			<p>None of these fields are required, but input is recommended to improve the game.</p>
+			<form action="?" method="post">
+				<input type="hidden" name="ans" value="<?php echo htmlspecialchars ($_GET ['ans']); ?>" />
+				<input type="hidden" name="cookie" value="<?php echo htmlspecialchars ($_GET ['cookie']); ?>" />
+				<input type="hidden" name="key" value="<?php echo htmlspecialchars ($_GET ['key']); ?>" />
+				<fieldset>
+					<label for="who">I was: </label>
+					<?php
+						if ($_GET ['ans'] === 't') {
+							echo '<input type="hidden" name="who" value="' . htmlspecialchars ($_GET ['target']) . '" />';
+							echo '<input type="text" id="who" disabled=true value="' . htmlspecialchars ($_GET ['target']) . '" />';
+						} else {
+							echo '<input type="text" id="who" name="who" list="characters" />';
+						}
+					?>
+				</fieldset>
+				<br />
 
-			<fieldset>
-				<label for="q">Add a question! </label>
-				<input type="text" name="q" id="q" autocomplete="off" list="questions" />
+				<fieldset>
+					<label for="q">Add a question! </label>
+					<input type="text" name="q" id="q" autocomplete="off" list="questions" />
+
+					<br />
+
+					<label for="q_ans">My character would've answered: </label>
+					<select name="q_ans" id="q_ans">
+						<option>Skip</option>
+						<option value="t">True</option>
+						<option value="f">False</option>
+					</select>
+				</fieldset>
 
 				<br />
 
-				<label for="q_ans">My character would've answered: </label>
-				<select name="q_ans" id="q_ans">
-					<option>Skip</option>
-					<option value="t">True</option>
-					<option value="f">False</option>
-				</select>
-			</fieldset>
-
-			<br />
-
-			<input class="btn" style="background-color: blue;" type="submit" value="Help train the AI!">
-			
-			
-			
-			<datalist id="characters">
-				<?php
-					$r = $db -> query ("SELECT name FROM characters ORDER BY name ASC;");
-					
-					while (true) {
-						$q = $r -> fetchArray (SQLITE3_NUM);
-						if ($q === false) { break; }
-						echo '<option value="' . $q [0] . '" />' . "\n";
-					}
-					$r -> finalize ();
-					unset ($r, $q);
-				?>
-			</datalist>
-			
-			<datalist id="questions">
-				<?php
-					$r = $db -> query ("SELECT text FROM questions ORDER BY text ASC;");
-					
-					while (true) {
-						$q = $r -> fetchArray (SQLITE3_NUM);
-						if ($q === false) { break; }
-						echo '<option value="' . $q [0] . '" />' . "\n";
-					}
-					$r -> finalize ();
-					unset ($r, $q);
-				?>
-			</datalist>
-		</form>
+				<input class="btn" style="background-color: blue;" type="submit" value="Help train the AI!">
+				
+				
+				
+				<datalist id="characters">
+					<?php
+						$r = $db -> query ("SELECT name FROM characters ORDER BY name ASC;");
+						
+						while (true) {
+							$q = $r -> fetchArray (SQLITE3_NUM);
+							if ($q === false) { break; }
+							echo '<option value="' . $q [0] . '" />' . "\n";
+						}
+						$r -> finalize ();
+						unset ($r, $q);
+					?>
+				</datalist>
+				
+				<datalist id="questions">
+					<?php
+						$r = $db -> query ("SELECT text FROM questions ORDER BY text ASC;");
+						
+						while (true) {
+							$q = $r -> fetchArray (SQLITE3_NUM);
+							if ($q === false) { break; }
+							echo '<option value="' . $q [0] . '" />' . "\n";
+						}
+						$r -> finalize ();
+						unset ($r, $q);
+					?>
+				</datalist>
+			</form>
+		</div>
 	</body>
 </html>

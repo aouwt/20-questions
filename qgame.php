@@ -182,41 +182,50 @@ restofdoc:
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="main.css" />
+		<style>
+			<?php include_once $CSS_PATH; ?>
+		</style>
 	</head>
 	<body>
-		<p>
-			<small><a href="?do=restart">Restart game</a></small>
-		</p>
-		<progress max=20 value=<?php echo $question_no; ?>><?php echo $question_no; ?></progress>
-		<p>
-			Question #<?php echo $question_no; ?>:
-			<strong><?php echo $question_text; ?></strong>
-		</p>
-		<?php
-			if ($redir) {
-				echo "
-					<label for=\"confidence\">Confidence: </label>
-					<meter id=\"confidence\" min=0 max=2 low=1 high=1.5 optimum=2 value=$confidence>$confidence</meter>
-				";
-			}
-		?>
-		<br />
-		<p>
+		<div class="main">
+			<p>
+				<small><a href="?do=restart">Restart game</a></small>
+			</p>
+			
+			<progress id="prog" max=20 value=<?php echo $question_no; ?>><?php echo $question_no; ?></progress>
+			
+			<p>
+				Question #<?php echo $question_no; ?>:
+				<strong><?php echo $question_text; ?></strong>
+			</p>
+			
 			<?php
 				if ($redir) {
 					echo "
-						<a class=\"btn\" style=\"background-color: green;\" href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
-						<a class=\"btn\" style=\"background-color: red;\" href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
-					";
-				} else {
-					echo "
-						<a class=\"btn\" style=\"background-color: green;\" href=\"?cookie=$cookie_t&key=$key\">True</a>
-						<a class=\"btn\" style=\"background-color: red;\" href=\"?cookie=$cookie_f&key=$key\">False</a>
-						<a class=\"btn\" style=\"background-color: blue;\"href=\"?cookie=$cookie&key=$key\">Skip</a>
+						<p>
+							<label for=\"confidence\" style=\"text-shadow: 0.1em 0.1em white; color: black;\">Confidence: </label>
+							<meter id=\"confidence\" min=0 max=2 low=1 high=1.5 optimum=2 value=$confidence>$confidence</meter>
+						</p>
 					";
 				}
 			?>
-		</p>
+			
+			<p>
+				<?php
+					if ($redir) {
+						echo "
+							<a class=\"btn\" style=\"background-color: green;\" href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
+							<a class=\"btn\" style=\"background-color: red;\" href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
+						";
+					} else {
+						echo "
+							<a class=\"btn\" style=\"background-color: green;\" href=\"?cookie=$cookie_t&key=$key\">True</a>
+							<a class=\"btn\" style=\"background-color: red;\" href=\"?cookie=$cookie_f&key=$key\">False</a>
+							<a class=\"btn\" style=\"background-color: blue;\"href=\"?cookie=$cookie&key=$key\">Skip</a>
+						";
+					}
+				?>
+			</p>
+		</div>
 	</body>
 </html>

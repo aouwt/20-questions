@@ -3,18 +3,41 @@ html {
 	text-align: center;
 }
 
+.main {
+	background-color: lightgrey;
+	margin: auto;
+	border: outset;
+	
+	padding-bottom: 3em;
+	padding-top: 1em;
+	padding-left: 10em;
+	padding-right: 10em;
+	
+	width: 50%;
+}
+
 .btn {
-	border: 0.1em outset;
+	border: inset;
 	padding: 0.5em;
 	color: white;
 	text-shadow: 0.1em 0.1em black;
 	text-decoration: initial;
 }
 
-input, progress, meter {
-	border: 0.1em outset;
+input, progress, meter, select {
+	border: inset;
+	font-family: monospace;
+	background-color: white;
+}
+
+fieldset {
+	border: inset;
+	background-color: grey;
+	color: white;
 }
 
 label {
 	font-weight: bold;
+	text-shadow: 0.1em 0.1em black;
+	color: white
 }
