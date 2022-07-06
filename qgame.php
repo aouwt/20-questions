@@ -199,22 +199,27 @@ restofdoc:
 				}
 			?>
 			
-			<p>
-				<?php
-					if ($redir) {
-						echo "
+			<?php
+				if ($redir) {
+					echo "
+						<p>
 							<a class=\"btn\" style=\"background-color: green;\" href=\"end.php?ans=t&cookie=$cookie&key=$key&target=$target_character\">Yes</a>
 							<a class=\"btn\" style=\"background-color: red;\" href=\"end.php?ans=f&cookie=$cookie&key=$key&target=$target_character\">No</a>
-						";
-					} else {
-						echo "
+						</p>
+					";
+				} else {
+					echo "
+						<p>
 							<a class=\"btn\" style=\"background-color: green;\" href=\"?cookie=$cookie_t&key=$key\">True</a>
 							<a class=\"btn\" style=\"background-color: red;\" href=\"?cookie=$cookie_f&key=$key\">False</a>
-							<a class=\"btn\" style=\"background-color: blue;\"href=\"?cookie=$cookie&key=$key\">Skip</a>
-						";
-					}
-				?>
-			</p>
+							<a class=\"btn\" style=\"background-color: blue;\" href=\"?cookie=$cookie&key=$key\">Skip</a>
+						</p>
+						<p>
+							<small><a class=\"btn\" style=\"background-color: red;\" href=\"report.php?qid=$question_id&cookie=$cookie&key=$key\">Report question</a></small>
+						</p>
+					";
+				}
+			?>
 		</div>
 	</body>
 </html>

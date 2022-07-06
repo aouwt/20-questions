@@ -24,6 +24,10 @@ html {
 	text-decoration: initial;
 }
 
+p {
+	margin: 2.5ch;
+}
+
 .btn:hover {
 	border: inset;
 	filter: brightness(1.2);
