@@ -16,46 +16,23 @@
 	
 	
 	function rset () {
-		global $question_total, $key;
+		global $question_total, $key, $db;
+		
+		if (! isset ($key)) { $key = mk_key (); }
 		echo '<meta http-equiv="refresh" content="0;url=';
 		echo '?cookie=' . str_repeat ('q', $question_total);
 		echo "&key=$key";
 		echo '" />';
+		
+		
+		$db -> exec ('COMMIT;');
 		exit ();
-	}
-	function strtoans ($i) {
-		switch ($i) {
-			case 't': return 1;
-			break;
-			case 'f': return -1;
-			break;
-			case 'q': return 0;
-			break;
-		}
-	}
-	function anstostr ($i) {
-		switch ($i) {
-			case 1: return 't';
-			break;
-			case -1: return 'f';
-			break;
-			case 0: return 'q';
-			break;
-		}
 	}
 	
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	$db -> exec ('BEGIN TRANSACTION;');
 	
-	if (! isset ($_GET ['key'])) {
-		$key = bin2hex (random_bytes (16));
-		$time = (string) (time () + (60 * 60 * 24));
-		$db -> exec ("INSERT INTO keys (value, expiry) VALUES ('$key', $time);");
-		unset ($time);
-	} else {
-		$key = htmlspecialchars ($_GET ['key']);
-	}
 	
 	# load questions
 	$r = $db -> query ('SELECT id, text FROM questions;');
@@ -70,6 +47,16 @@
 	unset ($r, $q);
 	
 	
+	# check for reqd params
+	if (! isset ($_GET ['cookie'])) { rset (); }
+	elseif ($_GET ['cookie'] === "") { rset (); }
+	
+	if (! isset ($_GET ['key'])) { rset (); }
+	elseif ($_GET ['key'] === "") { rset (); }
+	
+	$key = get_key ($_GET ['key']);
+	
+	
 	# parse arguments (1)
 	if (isset ($_GET ['do'])) {
 		switch ($_GET ['do']) {
@@ -77,10 +64,6 @@
 			break;
 		}
 	}
-	
-	# check for cookies
-	if (! isset ($_GET ['cookie'])) { rset (); }
-	elseif ($_GET ['cookie'] === "") { rset (); }
 	
 	$cookie = $_GET ['cookie'];
 

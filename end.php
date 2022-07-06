@@ -1,33 +1,10 @@
 <?php
 	require 'cfg.php';
 
-	function strtoans ($i) {
-		switch ($i) {
-			case 't': return 1;
-			break;
-			case 'f': return -1;
-			break;
-			case 'q': return 0;
-			break;
-		}
-	}
-	
-	function anstostr ($i) {
-		switch ($i) {
-			case 1: return 't';
-			break;
-			case -1: return 'f';
-			break;
-			case 0: return 'q';
-			break;
-		}
-	}
-	
 	
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	# var_dump ($_POST);
-	$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
 	$db -> exec ('BEGIN TRANSACTION;');
 	
 	if ($_SERVER ['REQUEST_METHOD'] === 'POST') {
@@ -43,19 +20,9 @@
 			exit ('<p><strong>Error:</strong> missing one or more required parameters</p>');
 		}
 		
-		#delete old keys
-		$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
 		
-		$_POST ['key'] = htmlspecialchars ($_POST ['key']);
+		$key = get_key ($_POST ['key']);
 		
-		#check if key exists
-		if ($db -> querySingle ('SELECT * FROM keys WHERE value = \'' . $_POST ['key'] . '\';') === null) {
-			http_response_code (403);
-			exit ('<p><strong>Error:</strong> invalid key</p>');
-		}
-
-		$db -> exec ('DELETE FROM keys WHERE value = \'' . $_POST ['key'] . '\';');
-
 		# chr variable
 		$_POST ['who'] = htmlspecialchars ($_POST ['who']);
 
@@ -100,7 +67,10 @@
 		foreach ($ar as $n => $a) {
 			# average out
 			$i = $n + 1;
+			
 			if (! isset ($chr ["q_$i"])) { $chr ["q_$i"] = 0; }
+			if ($chr ["q_$i"] === null) { $chr ["q_$i"] = 0; }
+			
 			if ($a !== 'q') {
 				$chr ["q_$i"] = (($chr ["q_$i"] * 9.0) + strtoans ($a)) / 10.0;
 			}
@@ -113,7 +83,9 @@
 		
 		$db -> exec ('UPDATE verinfo SET value = ' . time () . ' WHERE key = \'last_update\';');
 		
-		
+
+		$db -> exec ("DELETE FROM keys WHERE value = '$key';");
+				
 		$db -> exec ('COMMIT;');
 
 		echo '<h1>Thank you!</h1>';
