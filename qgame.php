@@ -1,5 +1,6 @@
 <?php
 	require 'cfg.php';
+	
 	if (isset ($_GET ['dump'])) {
 		switch ($_GET ['dump']) {
 			case 'v': $what = 'verinfo'; break;
@@ -12,9 +13,14 @@
 		exit ();
 	}
 	
+	
+	
 	function rset () {
-		global $question_total;
-		echo '<meta http-equiv="refresh" content="0;url=?cookie=' . str_repeat ('q', $question_total) . '" />';
+		global $question_total, $key;
+		echo '<meta http-equiv="refresh" content="0;url=';
+		echo '?cookie=' . str_repeat ('q', $question_total);
+		echo "&key=$key";
+		echo '" />';
 		exit ();
 	}
 	function strtoans ($i) {
@@ -41,6 +47,15 @@
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	$db -> exec ('BEGIN TRANSACTION;');
+	
+	if (! isset ($_GET ['key'])) {
+		$key = bin2hex (random_bytes (16));
+		$time = (string) (time () + (60 * 60 * 24));
+		$db -> exec ("INSERT INTO keys (value, expiry) VALUES ('$key', $time);");
+		unset ($time);
+	} else {
+		$key = htmlspecialchars ($_GET ['key']);
+	}
 	
 	# load questions
 	$r = $db -> query ('SELECT id, text FROM questions;');
@@ -165,16 +180,6 @@ restofdoc:
 	unset ($a, $i, $c);
 	
 	
-	if (! isset ($_GET ['key'])) {
-		$key = bin2hex (random_bytes (16));
-		$time = (string) (time () + (60 * 60 * 24));
-		$db -> exec ("INSERT INTO keys (value, expiry) VALUES ('$key', $time);");
-		unset ($time);
-	} else {
-		$key = htmlspecialchars ($_GET ['key']);
-	}
-	
-	
 	$db -> exec ('COMMIT;');
 	
 ?>
@@ -190,10 +195,10 @@ restofdoc:
 	<body>
 		<div class="main">
 			<p>
-				<small><a href="?do=restart">Restart game</a></small>
+				<small><a href="?key=<?php echo $key; ?>">Restart game</a></small>
 			</p>
 			
-			<progress id="prog" max=20 value=<?php echo $question_no; ?>><?php echo $question_no; ?></progress>
+			<progress id="prog" max=20 value=<?php echo $question_no; ?>><?php $question_no; ?></progress>
 			
 			<p>
 				Question #<?php echo $question_no; ?>:
