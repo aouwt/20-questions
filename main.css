@@ -17,11 +17,29 @@ html {
 }
 
 .btn {
-	border: inset;
+	border: outset;
 	padding: 0.5em;
 	color: white;
 	text-shadow: 0.1em 0.1em black;
 	text-decoration: initial;
+}
+
+.btn:hover {
+	border: inset;
+	filter: brightness(1.2);
+}
+
+.btn:not(hover) {
+	border: outset;
+	filter: brightness(1);
+}
+
+a:hover {
+	border: white inset;
+}
+
+a:not(hover) {
+	border: none;
 }
 
 input, progress, meter, select {
@@ -31,7 +49,7 @@ input, progress, meter, select {
 }
 
 fieldset {
-	border: inset;
+	border: outset;
 	background-color: grey;
 	color: white;
 }

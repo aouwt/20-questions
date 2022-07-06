@@ -185,6 +185,7 @@ restofdoc:
 		<style>
 			<?php include_once $CSS_PATH; ?>
 		</style>
+		<title>QGame 3.2</title>
 	</head>
 	<body>
 		<div class="main">
