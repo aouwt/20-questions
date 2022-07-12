@@ -111,6 +111,7 @@
 		<style>
 			<?php include_once $CSS_PATH; ?>
 		</style>
+		<meta charset="UTF-8">
 	</head>
 	<body>
 		<div class="main">

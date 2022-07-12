@@ -4,8 +4,8 @@
 	if (isset ($_GET ['dump'])) {
 		switch ($_GET ['dump']) {
 			case 'v': $what = 'verinfo'; break;
-			case 'c': $what = 'characters'; break;
-			case 'q': $what = 'questions'; break;
+			case 'c': $what = 'characters WHERE name IS NOT \'\''; break;
+			case 'q': $what = 'questions WHERE text IS NOT \'\''; break;
 			default: http_response_code (400); exit ();
 		}
 		header ('Content-Type: application/json');
@@ -60,7 +60,29 @@
 	# parse arguments (1)
 	if (isset ($_GET ['do'])) {
 		switch ($_GET ['do']) {
-			case 'restart': rset ();
+			case 'restart':
+				rset ();
+			break;
+			case 'report':
+				if (! isset ($_GET ['qid'])) {
+					http_response_code (400);
+					exit ('<p><strong>Error:</strong> missing one or more required parameters</p>');
+				}
+				
+				$qid = intval ($_GET ['qid']);
+				
+				if ($qid === 0) {
+					http_response_code (400);
+					exit ('<p><strong>Error:</strong> malformed request</p>');
+				}
+				
+				$db -> exec ('INSERT INTO reports (text, qid, time) VALUES (\'' . $questions [$qid] . "', $qid, " . time () . ');');
+				$db -> exec ("UPDATE questions SET text = '' WHERE id = $qid;");
+				
+				echo '<meta http-equiv="refresh" content="0;url=?cookie=' . $_GET ['cookie'] . '&key=' . $_GET ['key'] . '" />';
+				
+				$db -> exec ('COMMIT;');
+				exit ();
 			break;
 		}
 	}
@@ -138,6 +160,7 @@
 	$q = 0;
 	while (true) {
 		while ($userans [$q = rand (1, $question_total)] != 0); # make sure its not one we already asked!
+		if ($questions [$q] === '') { continue; } # blank questions are hidden/deleted
 		
 		if ($character [$target_character] [$q] == 0) { break; }
 		elseif (rand (0, 2) === 0) { break; }
@@ -174,6 +197,7 @@ restofdoc:
 			<?php include_once $CSS_PATH; ?>
 		</style>
 		<title>QGame 3.2</title>
+		<meta charset="UTF-8">
 	</head>
 	<body>
 		<div class="main">
@@ -215,7 +239,7 @@ restofdoc:
 							<a class=\"btn\" style=\"background-color: blue;\" href=\"?cookie=$cookie&key=$key\">Skip</a>
 						</p>
 						<p>
-							<small><a class=\"btn\" style=\"background-color: red;\" href=\"report.php?qid=$question_id&cookie=$cookie&key=$key\">Report question</a></small>
+							<small><a class=\"btn\" style=\"background-color: red;\" href=\"?do=report&qid=$question_id&cookie=$cookie&key=$key\">Report question</a></small>
 						</p>
 					";
 				}

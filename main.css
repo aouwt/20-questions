@@ -8,8 +8,8 @@ html {
 	margin: auto;
 	border: outset;
 	
-	padding-bottom: 3em;
 	padding-top: 1em;
+	padding-bottom: 1em;
 	padding-left: 10em;
 	padding-right: 10em;
 	
@@ -17,9 +17,16 @@ html {
 }
 
 .btn {
+	display: inline-block;
+	margin: 0.1em;
+	
+	
 	border: outset;
 	padding: 0.5em;
+	
+	background-color: blue;
 	color: white;
+	
 	text-shadow: 0.1em 0.1em black;
 	text-decoration: initial;
 }
@@ -43,13 +50,17 @@ a:hover {
 }
 
 a:not(hover) {
-	border: none;
+	border: white outset;
 }
 
-input, progress, meter, select {
+input, progress, meter, select, textarea {
 	border: inset;
 	font-family: monospace;
 	background-color: white;
+}
+
+textarea {
+	width: 100%;
 }
 
 fieldset {
@@ -62,4 +73,19 @@ label {
 	font-weight: bold;
 	text-shadow: 0.1em 0.1em black;
 	color: white
+}
+
+table {
+	border: outset;
+	margin: auto;
+}
+
+th {
+	border: inset;
+	color: white;
+	background-color: darkgray;
+}
+
+td {
+	border: inset;
 }
