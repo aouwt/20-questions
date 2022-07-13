@@ -11,25 +11,36 @@
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	if (isset ($_GET ['commit'])) {
-		$r = $db -> query (rawurldecode ($_GET ['commit']));
-		$o = array ();
+		$db -> exec ('BEGIN TRANSACTION;');
 		
-		while (true) {
-			$a = $r -> fetchArray (SQLITE3_ASSOC);
-			if ($a === false) { break; }
-			$o [] = $a;
+		$qs = explode ("\n", $_GET ['commit']);
+		
+		$o = array ();
+		foreach ($qs as $q) {
+			if ($q === '') { continue; }
+			$r = $db -> query ($q);
+			$o2 = array ();
+			
+			while (true) {
+				$a = $r -> fetchArray (SQLITE3_ASSOC);
+				if ($a === false) { break; }
+				$o2 [] = $a;
+			}
+			
+			$o [] = $o2;
+			
+			$r -> finalize ();
 		}
 		
 		header ('Content-Type: application/json');
 		echo json_encode ($o);
 		
-		$r -> finalize ();
-		
-		unset ($r, $o, $a);
+		$db -> exec ('COMMIT;');
+		unset ($r, $o, $a, $q, $o2, $qs);
 		exit ();
 	}
 	
-	$current_query = $_GET ['q'] . '%0A';
+	$current_query = rawurlencode ($_GET ['q'] . "\n");
 ?>
 <!DOCTYPE html>
 <html>
@@ -70,8 +81,8 @@
 						$t = htmlspecialchars ($q [0]);
 						$i = htmlspecialchars ($q [1]);
 						
-						$del_uri = $current_query . rawurlencode ("DELETE FROM reports WHERE qid = $i; -- Delete report\n");
-						$k_uri = $current_query . rawurlencode ("UPDATE questions SET text = '$t' WHERE qid=$i; -- Replace question\n") . $del_uri;
+						$del_uri = $current_query . rawurlencode ("DELETE FROM reports WHERE qid = $i -- Delete report\n");
+						$k_uri = $current_query . rawurlencode ("UPDATE questions SET text = '$t' WHERE id = $i -- Replace question\nDELETE FROM reports WHERE qid = $i -- Delete report\n");
 						echo "
 							<tr>
 								<td>
@@ -116,7 +127,7 @@
 						
 						$e = date ('c', $q [1]);
 						$k = htmlspecialchars ($q [0]);
-						$u = $current_query . rawurlencode ("DELETE FROM keys WHERE value = $k; -- Delete key\n");
+						$u = $current_query . rawurlencode ("DELETE FROM keys WHERE value = '$k' -- Delete key\n");
 						echo "
 							<tr>
 								<td>
