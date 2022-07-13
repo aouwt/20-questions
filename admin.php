@@ -1,16 +1,14 @@
 <?php
 	require 'cfg.php';
 	
-	
 	# is localhost
-	if (! in_array ($_SERVER ['REMOTE_ADDR'], ['::1', '127.0.0.1', 'localhost'])) {
-		http_response_code (403);
-		exit ('<h1>Unauthorized remote address.</h1>');
-	}
+	$is_authorized = in_array ($_SERVER ['REMOTE_ADDR'], ['::1', '127.0.0.1', 'localhost']);
+	
 	
 	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
 	
 	if (isset ($_GET ['commit'])) {
+		if (! $is_authorized) { http_response_code (403); exit ('Unauthorized remote address.'); }
 		$db -> exec ('BEGIN TRANSACTION;');
 		
 		$qs = explode ("\n", $_GET ['commit']);
@@ -118,33 +116,35 @@
 				</tr>
 				
 				<?php
-					$r = $db -> query ('SELECT value, expiry FROM keys;');
-					
-					while (true) {
-						$q = $r -> fetchArray (SQLITE3_NUM);
+					if ($is_authorized) {
+						$r = $db -> query ('SELECT value, expiry FROM keys;');
 						
-						if ($q === false) { break; }
-						
-						$e = date ('c', $q [1]);
-						$k = htmlspecialchars ($q [0]);
-						$u = $current_query . rawurlencode ("DELETE FROM keys WHERE value = '$k' -- Delete key\n");
-						echo "
-							<tr>
-								<td>
-									<code>$k</code>
-								</td>
-								<td>
-									<time>$e</time>
-								</td>
-								<td>
-									<a class=\"btn\" style=\"background-color: red;\" href=\"?q=$u\" title=\"Remove session\">🗑</a>
-								</td>
-									
-							</tr>
-						";
+						while (true) {
+							$q = $r -> fetchArray (SQLITE3_NUM);
+							
+							if ($q === false) { break; }
+							
+							$e = date ('c', $q [1]);
+							$k = htmlspecialchars ($q [0]);
+							$u = $current_query . rawurlencode ("DELETE FROM keys WHERE value = '$k' -- Delete key\n");
+							echo "
+								<tr>
+									<td>
+										<code>$k</code>
+									</td>
+									<td>
+										<time>$e</time>
+									</td>
+									<td>
+										<a class=\"btn\" style=\"background-color: red;\" href=\"?q=$u\" title=\"Remove session\">🗑</a>
+									</td>
+										
+								</tr>
+							";
+						}
+						$r -> finalize ();
+						unset ($r, $q, $e, $k, $u);
 					}
-					$r -> finalize ();
-					unset ($r, $q, $e, $k, $u);
 				?>
 			</table>	
 		</div>
