@@ -1,20 +1,39 @@
 <?php
-	$DB_PATH = '/home/kit/git/20-questions/php.db';
-	$CSS_PATH = '/home/kit/git/20-questions/main.css';
+	include ('/home/kit/auth/qgame_3.php');
+	
+	$db = new mysqli ("localhost", "qgame_3", $DB_PASS, "qgame_3");
+	
+	$db -> begin_transaction ();
 	
 	function get_key ($key) {
 		global $db;
 		
 		#delete old keys
-		$key = htmlspecialchars ($key);
-		$db -> exec ('DELETE FROM keys WHERE expiry < ' . time () . ';');
+		$stmt = $db -> prepare ('DELETE FROM cookies WHERE expiry < ?;');
+		$stmt -> bind_param ('i', time ());
+		$stmt -> execute ();
+		$stmt -> close ();
+		
+		$stmt = $db -> prepare ('SELECT * FROM cookies WHERE cookie = ?;');
+		$stmt -> bind_param ('s', $key);
+		$stmt -> execute ();
+		$stmt -> store_result ();
 		
 		#check if key exists
-		if ($db -> querySingle ("SELECT * FROM keys WHERE value = '$key';") === null) {
+		if ($stmt -> num_rows === 0) {
 			http_response_code (403);
-			$db -> exec ('COMMIT;');
+			
+			$stmt -> free_result ();
+			$stmt -> close ();
+			
+			$db -> commit ();
+			$db -> close ();
+			
 			exit ('<p><strong>Error:</strong> invalid key</p><p><a href="qgame.php">OK</a></p>');
 		}
+		
+		$stmt -> free_result ();
+		$stmt -> close ();	
 		
 		return $key;
 	}
@@ -23,7 +42,12 @@
 		global $db;
 		$key = bin2hex (random_bytes (16));
 		$time = (string) (time () + (60 * 10));
-		$db -> exec ("INSERT INTO keys (value, expiry) VALUES ('$key', $time);");
+		
+		$stmt = $db -> prepare ('INSERT INTO cookies (cookie, expiry) VALUES (?, ?);');
+		$stmt -> bind_param ('si', $key, $time);
+		$stmt -> execute ();
+		$stmt -> close ();
+		
 		return $key;
 	}
 	

@@ -25,26 +25,23 @@
 		echo '" />';
 		
 		
-		$db -> exec ('COMMIT;');
+		$db -> commit ();
 		exit ();
 	}
 	
-	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
-	
-	$db -> exec ('BEGIN TRANSACTION;');
+	$db -> begin_transaction ();
 	
 	
 	# load questions
-	$r = $db -> query ('SELECT id, text FROM questions;');
+	$res = $db -> query ('SELECT id, text FROM questions;');
 	$questions = array ();
-	while (true) {
-		$q = $r -> fetchArray (SQLITE3_NUM);
-		if ($q === false) { break; }
+	$fetch = $res -> fetch_all (MYSQLI_NUM);
+	foreach ($fetch as $q) {
 		$questions [$q [0]] = $q [1];
 	}
-	$r -> finalize ();
-	$question_total = count ($questions);
-	unset ($r, $q);
+	$question_total = $res -> num_rows;
+	$res -> close ();
+	unset ($res, $fetch, $q);
 	
 	
 	# check for reqd params
@@ -71,17 +68,22 @@
 				
 				$qid = intval ($_GET ['qid']);
 				
-				if ($qid === 0) {
-					http_response_code (400);
-					exit ('<p><strong>Error:</strong> malformed request</p>');
-				}
+				$stmt = $db -> prepare ('INSERT INTO reports (text, qid, time) VALUES (?, ?, ?);');
+				$stmt -> bind_param ('sii', $questions [$qid], $qid, time ());
+				$stmt -> execute ();
+				$stmt -> close ();
 				
-				$db -> exec ('INSERT INTO reports (text, qid, time) VALUES (\'' . $questions [$qid] . "', $qid, " . time () . ');');
-				$db -> exec ("UPDATE questions SET text = '' WHERE id = $qid;");
+				$stmt = $db -> prepare ('UPDATE questions SET text = \'\' WHERE id = ?;');
+				$stmt -> bind_param ('i', $qid);
+				$stmt -> execute ();
+				$stmt -> close ();
+				
+				unset ($stmt);
 				
 				echo '<meta http-equiv="refresh" content="0;url=?cookie=' . $_GET ['cookie'] . '&key=' . $_GET ['key'] . '" />';
 				
-				$db -> exec ('COMMIT;');
+				$db -> commit ();
+				$db -> close ();
 				exit ();
 			break;
 		}
@@ -91,10 +93,10 @@
 
 
 	# get user answers
-	$s = str_split ($cookie);
+	$str = str_split ($cookie);
 	$userans = array ();
-	foreach ($s as $i => $c) { $userans [$i + 1] = strtoans ($c); }
-	unset ($s, $i, $c);
+	foreach ($str as $i => $c) { $userans [$i + 1] = strtoans ($c); }
+	unset ($str, $i, $c);
 	
 	# check answers
 	$userans_ = array_count_values ($userans);
@@ -105,47 +107,48 @@
 	
 	
 	# load characters
-	$r = $db -> query ('SELECT * FROM characters;');
+	$res = $db -> query ('SELECT * FROM characters;');
+	$all = $res -> fetch_all (MYSQLI_ASSOC);
 	$keys = array_keys ($questions);
 	$character = array ();
-	while (true) {
-		$q = $r -> fetchArray (SQLITE3_ASSOC);
-		if ($q === false) { break; }
-		
-		$c = $q ['name'];
+	foreach ($all as $chr) {
+		$cname = $chr ['name'];
 		foreach ($keys as $i) {
-			$character [$c] [$i] = $q ["q_$i"];
+			$character [$cname] [$i] = $chr ["q_$i"];
 		}
 	}
-	$r -> finalize ();
-	unset ($c, $i, $q, $r, $keys);
+	$res -> close ();
+	unset ($res, $all, $keys, $chr, $cname, $i);
 	
 	
 	# calculate character probabilities
-	foreach ($character as $ci => $c) {
-		$d = 0; $n = 0.0;
-		foreach ($c as $i => $q) {
+	foreach ($character as $cname => $cdat) {
+		$denom = 0; $num = 0.0;
+		
+		foreach ($cdat as $i => $q) { # each q
 			if ($userans [$i] != 0) {
-				$n += $q * $userans [$i];
-				$d ++;
+				$num += $q * $userans [$i];
+				$denom ++;
 			}
 		}
-		if ($d != 0) { $chance [$ci] = $n / $d; }
-		else { $chance [$ci] = 0; }
+		
+		if ($denom != 0) { $chance [$cname] = $num / $denom; }
+		else { $chance [$cname] = 0; }
 	}
-	unset ($ci, $c, $d, $n, $i, $q);
+	unset ($cname, $cdat, $denom, $num, $i, $q);
 	
 	
 	# find highest probablility character
 	$max = -10.0;
 	foreach ($chance as $i => $c) {
-		if ($c >= $max) {
-			$max = $c;
+		if ($chr >= $max) {
+			$max = $chr;
 			$target_character = $i;
 		}
 	}
 	$confidence = $max + 1;
-	unset ($i, $c, $max);
+	unset ($i, $chr, $max);
+	
 	
 	# check if end of game
 	$question_no = $userans_ [1] + $userans_ [-1];
@@ -157,17 +160,17 @@
 	
 	
 	# get question
-	$q = 0;
+	$qid = 0;
 	while (true) {
-		while ($userans [$q = rand (1, $question_total)] != 0); # make sure its not one we already asked!
-		if ($questions [$q] === '') { continue; } # blank questions are hidden/deleted
+		while ($userans [$qid = rand (1, $question_total)] != 0); # make sure its not one we already asked!
+		if ($questions [$qid] === '') { continue; } # blank questions are hidden/deleted
 		
-		if ($character [$target_character] [$q] == 0) { break; }
+		if ($character [$target_character] [$qid] == 0) { break; }
 		elseif (rand (0, 2) === 0) { break; }
 	}
-	$question_text = $questions [$q];
-	$question_id = $q;
-	unset ($q);
+	$question_text = $questions [$qid];
+	$question_id = $qid;
+	unset ($qid);
 	
 	
 	$cookie_f = $cookie_t = $cookie;
@@ -178,24 +181,23 @@
 	
 restofdoc:
 	#update cookie
-	$a = array ();
-	foreach ($userans as $i => $c) {
-		$a [$i] = anstostr ($c);
+	$ck = array ();
+	foreach ($userans as $i => $chr) {
+		$ck [$i] = anstostr ($chr);
 	}
-	$cookie = implode ($a);
-	unset ($a, $i, $c);
+	$cookie = implode ($ck);
+	unset ($ck, $i, $c);
 	
 	
-	$db -> exec ('COMMIT;');
+	$db -> commit ();
+	$db -> close ();
 	
 ?>
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<style>
-			<?php include_once $CSS_PATH; ?>
-		</style>
+		<link rel="stylesheet" href="main.css" />
 		<title>QGame 3.2</title>
 		<meta charset="UTF-8">
 	</head>
