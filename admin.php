@@ -4,37 +4,12 @@
 	# is localhost
 	$is_authorized = in_array ($_SERVER ['REMOTE_ADDR'], ['::1', '127.0.0.1', 'localhost']);
 	
-	
-	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
-	
 	if (isset ($_GET ['commit'])) {
 		if (! $is_authorized) { http_response_code (403); exit ('Unauthorized remote address.'); }
-		$db -> exec ('BEGIN TRANSACTION;');
+		$db -> begin_transaction ();
 		
-		$qs = explode ("\n", $_GET ['commit']);
+		$db -> 
 		
-		$o = array ();
-		foreach ($qs as $q) {
-			if ($q === '') { continue; }
-			$r = $db -> query ($q);
-			$o2 = array ();
-			
-			while (true) {
-				$a = $r -> fetchArray (SQLITE3_ASSOC);
-				if ($a === false) { break; }
-				$o2 [] = $a;
-			}
-			
-			$o [] = $o2;
-			
-			$r -> finalize ();
-		}
-		
-		header ('Content-Type: application/json');
-		echo json_encode ($o);
-		
-		$db -> exec ('COMMIT;');
-		unset ($r, $o, $a, $q, $o2, $qs);
 		exit ();
 	}
 	
@@ -44,9 +19,7 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<style>
-			<?php include_once $CSS_PATH; ?>
-		</style>
+		<link rel="stylesheet" href="main.css" />
 		<meta charset="UTF-8">
 	</head>
 	<body>
@@ -68,36 +41,36 @@
 				</tr>
 				
 				<?php
-					$r = $db -> query ('SELECT text, qid, time FROM reports;');
-					
-					while (true) {
-						$q = $r -> fetchArray (SQLITE3_NUM);
+					$res = $db -> query ('SELECT qtext, qid, time FROM reports;');
+					$all = $res -> fetch_all (MYSQLI_ASSOC);
 						
-						if ($q === false) { break; }
+					foreach ($all as $row) {
+						$time = htmlspecialchars (date ('c', $row ['time']));
+						$qtext = htmlspecialchars ($row ['qtext']);
+						$qid = htmlspecialchars ($row ['qid']);
 						
-						$a = htmlspecialchars (date ('c', $q [2]));
-						$t = htmlspecialchars ($q [0]);
-						$i = htmlspecialchars ($q [1]);
-						
-						$del_uri = $current_query . rawurlencode ("DELETE FROM reports WHERE qid = $i -- Delete report\n");
-						$k_uri = $current_query . rawurlencode ("UPDATE questions SET text = '$t' WHERE id = $i -- Replace question\nDELETE FROM reports WHERE qid = $i -- Delete report\n");
+						$del_uri = $current_query . rawurlencode ("DELETE FROM reports WHERE qid = $qid -- Delete report\n");
+						$keep_uri = $current_query . rawurlencode (
+							"UPDATE questions SET text = '$qtext' WHERE id = $qid -- Replace question\n" .
+							"DELETE FROM reports WHERE qid = $qid -- Delete report\n"
+						);
 						echo "
 							<tr>
 								<td>
-									($i) <q>$t</q>
+									($qid) <q>$qtext</q>
 								</td>
 								<td>
-									<time>$a</time>
+									<time>$time</time>
 								</td>
 								<td>
 									<a class=\"btn\" style=\"background-color: red\" href=\"?q=$del_uri\" title=\"Delete question\">✗</a>
-									<a class=\"btn\" style=\"background-color: green\" href=\"?q=$k_uri\" title=\"Keep question\">✓</a>
+									<a class=\"btn\" style=\"background-color: green\" href=\"?q=$keep_uri\" title=\"Keep question\">✓</a>
 								</td>
 							</tr>
 						";
 					}
-					$r -> finalize ();
-					unset ($r, $q, $a, $t, $i, $del_uri, $k_uri);
+					$res -> close ();
+					unset ($res, $all, $row, $time, $qtext, $qid, $del_uri, $keep_uri);
 				?>
 			</table>
 		
@@ -117,33 +90,31 @@
 				
 				<?php
 					if ($is_authorized) {
-						$r = $db -> query ('SELECT value, expiry FROM keys;');
+						$res = $db -> query ('SELECT cookie, expiry FROM cookies;');
+						$all = $res -> fetch_all (MYSQLI_ASSOC);
 						
-						while (true) {
-							$q = $r -> fetchArray (SQLITE3_NUM);
+						foreach ($all as $row) {
 							
-							if ($q === false) { break; }
-							
-							$e = date ('c', $q [1]);
-							$k = htmlspecialchars ($q [0]);
-							$u = $current_query . rawurlencode ("DELETE FROM keys WHERE value = '$k' -- Delete key\n");
+							$expiry = date ('c', $row ['expiry']);
+							$cookie = htmlspecialchars ($row ['cookie']);
+							$queery = $current_query . rawurlencode ("DELETE FROM cookies WHERE cookie = '$k' -- Delete cookie\n");
 							echo "
 								<tr>
 									<td>
-										<code>$k</code>
+										<code>$cookie</code>
 									</td>
 									<td>
-										<time>$e</time>
+										<time>$expiry</time>
 									</td>
 									<td>
-										<a class=\"btn\" style=\"background-color: red;\" href=\"?q=$u\" title=\"Remove session\">🗑</a>
+										<a class=\"btn\" style=\"background-color: red;\" href=\"?q=$queery\" title=\"Remove session\">🗑</a>
 									</td>
 										
 								</tr>
 							";
 						}
-						$r -> finalize ();
-						unset ($r, $q, $e, $k, $u);
+						$res -> close ();
+						unset ($res, $all, $expiry, $cookie, $queery);
 					}
 				?>
 			</table>	

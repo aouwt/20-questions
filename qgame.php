@@ -3,13 +3,20 @@
 	
 	if (isset ($_GET ['dump'])) {
 		switch ($_GET ['dump']) {
-			case 'v': $what = 'verinfo'; break;
-			case 'c': $what = 'characters WHERE name IS NOT \'\''; break;
-			case 'q': $what = 'questions WHERE text IS NOT \'\''; break;
+			case 'v': $queery = 'SELECT * FROM verinfo;'; break;
+			case 'c': $queery = 'SELECT * FROM characters WHERE name != \'\';'; break;
+			case 'q': $queery = 'SELECT * FROM questions WHERE text != \'\';'; break;
 			default: http_response_code (400); exit ();
 		}
+		
+		$res = $db -> query ($queery);
+		$all = $res -> fetch_all (MYSQLI_ASSOC);
+		$res -> close ();
+		
+		$db -> close ();
+		
 		header ('Content-Type: application/json');
-		echo shell_exec ("sqlite3 -json -readonly '$DB_PATH' 'SELECT * FROM $what;'");
+		echo json_encode ($all);
 		exit ();
 	}
 	
@@ -68,7 +75,7 @@
 				
 				$qid = intval ($_GET ['qid']);
 				
-				$stmt = $db -> prepare ('INSERT INTO reports (text, qid, time) VALUES (?, ?, ?);');
+				$stmt = $db -> prepare ('INSERT INTO reports (qtext, qid, time) VALUES (?, ?, ?);');
 				$stmt -> bind_param ('sii', $questions [$qid], $qid, time ());
 				$stmt -> execute ();
 				$stmt -> close ();
@@ -140,7 +147,7 @@
 	
 	# find highest probablility character
 	$max = -10.0;
-	foreach ($chance as $i => $c) {
+	foreach ($chance as $i => $chr) {
 		if ($chr >= $max) {
 			$max = $chr;
 			$target_character = $i;

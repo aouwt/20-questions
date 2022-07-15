@@ -1,11 +1,5 @@
 <?php
 	require 'cfg.php';
-
-	
-	$db = new SQLite3 ($DB_PATH, SQLITE3_OPEN_READWRITE);
-	
-	# var_dump ($_POST);
-	$db -> exec ('BEGIN TRANSACTION;');
 	
 	if ($_SERVER ['REQUEST_METHOD'] === 'POST') {
 		# exit ();
@@ -23,32 +17,56 @@
 		
 		$key = get_key ($_POST ['key']);
 		
-		# chr variable
-		$_POST ['who'] = htmlspecialchars ($_POST ['who']);
-
-		$chr = $db -> querySingle ('SELECT * FROM characters WHERE name = \'' . $_POST ['who'] . '\';', true);
-
-		if ($chr === array ()) {
-			$db -> exec ('INSERT INTO characters (name) VALUES (\'' . $_POST ['who'] . '\');');
-			$chr = array ();
-		}
 		
+		#insert if not extant
+		$stmt = $db -> prepare ('
+			IF NOT EXISTS (
+				SELECT name FROM characters WHERE name = ?
+			) THEN
+				INSERT INTO characters (name) VALUES (?);
+			END IF;
+		');
+		$stmt -> bind_param ('ss', $_POST ['who'], $_POST ['who']);
+		$stmt -> execute ();
+		$stmt -> close ();
+		
+		$stmt = $db -> prepare ('SELECT * FROM characters WHERE name = ?;');
+		$stmt -> bind_param ('s', $_POST ['who']);
+		$stmt -> execute ();
+		
+		$res = $stmt -> get_result ();
+		$chr = $res -> fetch_assoc ();
+		$res -> close ();
+		$stmt -> close ();
 		
 		
 		
 		if (isset ($_POST ['q'])) { if ($_POST ['q'] !== '') {
-			# check if extant
-			$question_id = $db -> querySingle ('SELECT id FROM questions WHERE text = \'' . htmlspecialchars (strtolower ($_POST ['q'])) . '\';');
 			
+			$stmt = $db -> prepare ('SELECT id FROM questions WHERE text = ?;');
+			$stmt -> bind_param ('s', $_POST ['q']);
+			$stmt -> store_result ();
 			
-			$_POST ['q'] = htmlspecialchars ($_POST ['q']);
-			
-			
-			if ($question_id === null) {
+			if ($stmt -> num_rows === 0) {
 				#insert question
-				$db -> exec ('INSERT INTO questions (text) VALUES (\'' . $_POST ['q'] . '\');');
-				$question_id = $db -> querySingle ('SELECT id FROM questions WHERE text = \'' . $_POST ['q'] . '\';');
-				$db -> exec ("ALTER TABLE characters ADD q_$question_id;");
+				$stmt -> free_result (); $stmt -> close ();
+				
+				$stmt = $db -> prepare ('INSERT INTO questions (text) VALUES (?);');
+				$stmt -> bind_param ('s', $_POST ['q']);
+				$stmt -> execute ();
+				$stmt -> close ();
+				
+				$stmt = $db -> prepare ('SELECT id FROM questions WHERE text = ?;');
+				$stmt -> bind_param ('s', $_POST ['q']);
+				$stmt -> execute ();
+				
+				$res = $stmt -> get_result ();
+				$question_id = $res -> fetch_column ();
+				$res -> close ();
+				
+				$stmt -> close ();
+				
+				$db -> query ('ALTER TABLE characters ADD q_$question_id FLOAT;');
 			}
 
 
@@ -60,33 +78,40 @@
 			
 		} }
 		
-		$s = array ();
-		$ar = str_split ($_POST ['cookie']);
+		$queery = array ();
+		$cookie = str_split ($_POST ['cookie']);
 		if (! isset ($chr ['name'])) { $chr ['name'] = $_POST ['who']; }
 		# var_dump ($chr);
-		foreach ($ar as $n => $a) {
+		foreach ($cookie as $i => $c) {
 			# average out
-			$i = $n + 1;
+			$cnt = $i + 1;
 			
-			if (! isset ($chr ["q_$i"])) { $chr ["q_$i"] = 0; }
-			if ($chr ["q_$i"] === null) { $chr ["q_$i"] = 0; }
+			if (! isset ($chr ["q_$cnt"])) { $chr ["q_$cnt"] = 0; }
+			if ($chr ["q_$cnt"] === null) { $chr ["q_$cnt"] = 0; }
 			
-			if ($a !== 'q') {
-				$chr ["q_$i"] = (($chr ["q_$i"] * 9.0) + strtoans ($a)) / 10.0;
+			if ($c !== 'q') {
+				$chr ["q_$cnt"] = (($chr ["q_$cnt"] * 9.0) + strtoans ($c)) / 10.0;
+				echo $chr ["q_$cnt"];
 			}
-			$s [$n] = "q_$i = " . $chr ["q_$i"];
+			$queery [] = "q_$cnt = " . $chr ["q_$cnt"];
 		}
-		$s = implode (', ', $s);
-		$db -> exec ("UPDATE characters SET $s WHERE name = '" . $chr ['name'] . '\';');
-		unset ($ar, $n, $a, $i, $b, $s);
+		# var_dump ($queery);
+		$queery = implode (', ', $queery);
+		# echo $queery;
+		$stmt = $db -> prepare ("UPDATE characters SET $queery WHERE name = ?;");
+		$stmt -> bind_param ('s', $chr ['name']);
+		$stmt -> execute ();
+		$stmt -> close ();
+		unset ($cookie, $i, $c, $cnt, $queery, $stmt);
 		
+		$stmt = $db -> prepare ('DELETE FROM cookies WHERE cookie = ?;');
+		$stmt -> bind_param ('s', $key);
+		$stmt -> execute ();
+		$stmt -> close ();
 		
-		$db -> exec ('UPDATE verinfo SET value = ' . time () . ' WHERE key = \'last_update\';');
-		
-
-		$db -> exec ("DELETE FROM keys WHERE value = '$key';");
 				
-		$db -> exec ('COMMIT;');
+		$db -> commit ();
+		$db -> close ();
 
 		echo '<h1>Thank you!</h1>';
 		exit ();
@@ -108,9 +133,7 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1"> 
-		<style>
-			<?php include_once $CSS_PATH; ?>
-		</style>
+		<link rel="stylesheet" href="main.css" />
 		<meta charset="UTF-8">
 	</head>
 	<body>
@@ -156,29 +179,29 @@
 				
 				<datalist id="characters">
 					<?php
-						$r = $db -> query ("SELECT name FROM characters ORDER BY name ASC;");
+						$res = $db -> query ('SELECT name FROM characters WHERE text != \'\' ORDER BY name ASC;');
 						
 						while (true) {
-							$q = $r -> fetchArray (SQLITE3_NUM);
-							if ($q === false) { break; }
-							echo '<option value="' . $q [0] . '" />' . "\n";
+							$row = $res -> fetch_row ();
+							if ($row === null) { break; }
+							echo '<option value="' . $row [0] . '" />' . "\n";
 						}
-						$r -> finalize ();
-						unset ($r, $q);
+						$res -> close ();
+						unset ($row, $res);
 					?>
 				</datalist>
 				
 				<datalist id="questions">
 					<?php
-						$r = $db -> query ("SELECT text FROM questions ORDER BY text ASC;");
+						$res = $db -> query ('SELECT text FROM questions WHERE text != \'\' ORDER BY text ASC;');
 						
 						while (true) {
-							$q = $r -> fetchArray (SQLITE3_NUM);
-							if ($q === false) { break; }
-							echo '<option value="' . $q [0] . '" />' . "\n";
+							$row = $res -> fetch_row ();
+							if ($row === null) { break; }
+							echo '<option value="' . $row [0] . '" />' . "\n";
 						}
-						$r -> finalize ();
-						unset ($r, $q);
+						$res -> close ();
+						unset ($row, $res);
 					?>
 				</datalist>
 			</form>

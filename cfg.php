@@ -10,9 +10,9 @@
 		
 		#delete old keys
 		$stmt = $db -> prepare ('DELETE FROM cookies WHERE expiry < ?;');
-		$stmt -> bind_param ('i', time ());
-		$stmt -> execute ();
-		$stmt -> close ();
+		$t = time ();
+		$stmt -> bind_param ('i', $t);
+		$stmt -> execute (); $stmt -> close ();
 		
 		$stmt = $db -> prepare ('SELECT * FROM cookies WHERE cookie = ?;');
 		$stmt -> bind_param ('s', $key);
